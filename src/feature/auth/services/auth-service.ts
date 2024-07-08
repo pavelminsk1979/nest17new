@@ -19,6 +19,7 @@ import {
 import { SecurityDeviceRepository } from '../../security-device/repositories/security-device-repository';
 import { Request } from 'express';
 import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
+import { CreateUser } from '../api/types/dto';
 
 @Injectable()
 export class AuthService {
@@ -152,7 +153,7 @@ export class AuthService {
 
     const passwordHash = await this.hashPasswordService.generateHash(password);
 
-    const newUser: UserDocument = new this.userModel({
+    const newUser: CreateUser = {
       login,
       passwordHash,
       email,
@@ -160,9 +161,13 @@ export class AuthService {
       confirmationCode: randomCode(),
       isConfirmed: false,
       expirationDate: add(new Date(), { hours: 1, minutes: 2 }).toISOString(),
-    });
+      /*
+       expirationDate инициализируется значением, которое
+       рассчитывается с использованием функции add из библиотеки date-fns (или подобной библиотеки для работы с датами)
+       Функция add принимает два аргумента: дату и объект с настройками добавления времени. В данном случае, первый аргумент - это текущая дата, полученная с помощью new Date(), а второй аргумент - это объект с настройками { hours: 1, minutes: 2 }, который указывает, что нужно добавить 1 час и 2 минуты к текущей дате*/
+    };
 
-    const user: UserDocument = await this.usersRepository.save(newUser);
+    const user = await this.usersSqlRepository.createNewUser(newUser);
 
     /* после того как в базе данных сущность уже создана
  ответ фронту покачто не отправляю 
@@ -170,7 +175,8 @@ export class AuthService {
    который регистрируется сейчас 
  Н*/
 
-    const code = user.confirmationCode;
+    //const code = user.confirmationCode;
+    const code = '764gfuyt';
 
     const letter: string = this.emailSendService.createLetterRegistration(code);
 
