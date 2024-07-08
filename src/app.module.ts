@@ -65,6 +65,8 @@ import {
 } from './feature/visit-limit/domains/domain-limit-visit';
 import { LimitVisitService } from './feature/visit-limit/services/limit-visit-service';
 import { LimitVisitRepository } from './feature/visit-limit/repositories/limit-visit-repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersSqlRepository } from './feature/users/repositories/user-sql-repository';
 
 dotenv.config();
 
@@ -94,6 +96,17 @@ dotenv.config();
        configuration это функция в которой прописана
       конфигурация */
       load: [configuration],
+    }),
+
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'pavel',
+      database: 'newDatabase',
+      autoLoadEntities: true,
+      synchronize: true,
     }),
 
     /*   метод forRootAsync, предоставляемый модулем
@@ -242,6 +255,7 @@ dotenv.config();
     VisitLimitGuard,
     LimitVisitService,
     LimitVisitRepository,
+    UsersSqlRepository,
   ],
 })
 /*export class AppModule {} в данном контексте

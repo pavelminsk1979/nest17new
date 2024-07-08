@@ -18,6 +18,7 @@ import {
 } from '../../security-device/domains/domain-security-device';
 import { SecurityDeviceRepository } from '../../security-device/repositories/security-device-repository';
 import { Request } from 'express';
+import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +31,7 @@ export class AuthService {
     @InjectModel(SecurityDevice.name)
     private securityDeviceModel: Model<SecurityDeviceDocument>,
     protected securityDeviceRepository: SecurityDeviceRepository,
+    protected usersSqlRepository: UsersSqlRepository,
   ) {}
 
   async loginUser(loginInputModel: LoginInputModel, request: Request) {
