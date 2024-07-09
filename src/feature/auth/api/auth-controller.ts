@@ -71,18 +71,19 @@ export class AuthController {
   async handleRegistration(
     @Body() registrationInputModel: RegistrationInputModel,
   ) {
-    const result: { field: string; res: string } =
-      await this.authService.registrationUser(registrationInputModel);
+    const result: [] | null = await this.authService.registrationUser(
+      registrationInputModel,
+    );
     debugger;
-    if (result.res === 'false') {
+    if (result) {
+      return;
+    } else {
       throw new BadRequestException([
         {
-          message: `field ${result.field} must be unique`,
-          field: `${result.field}`,
+          message: 'Not create newUser',
+          field: 'andpoint-registration,method-post',
         },
       ]);
-    } else {
-      return;
     }
   }
 

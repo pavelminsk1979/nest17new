@@ -23,8 +23,8 @@ describe('tests for andpoint auth/login', () => {
 
     await app.init();
 
-    //для очистки базы данных
-    await request(app.getHttpServer()).delete('/testing/all-data');
+    /*   для очистки базы данных
+       await request(app.getHttpServer()).delete('/testing/all-data');*/
   });
 
   afterAll(async () => {
@@ -32,11 +32,11 @@ describe('tests for andpoint auth/login', () => {
   });
 
   it('registration  user', async () => {
-    const login1 = 'login111';
+    const login1 = 'login11';
 
-    const password1 = 'password1';
+    const password1 = 'password';
 
-    const email1 = 'avelminsk1979@mail.ru';
+    const email1 = 'avelminsk197@mail.ru';
 
     await request(app.getHttpServer())
       .post('/auth/registration')
