@@ -19,7 +19,8 @@ import {
 import { SecurityDeviceRepository } from '../../security-device/repositories/security-device-repository';
 import { Request } from 'express';
 import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
-import { CreateUser } from '../api/types/dto';
+import { CreateUser, CreateUserWithId } from '../api/types/dto';
+import { SecurityDeviceSqlRepository } from '../../security-device/repositories/security-device-sql-repository';
 
 @Injectable()
 export class AuthService {
@@ -33,6 +34,7 @@ export class AuthService {
     private securityDeviceModel: Model<SecurityDeviceDocument>,
     protected securityDeviceRepository: SecurityDeviceRepository,
     protected usersSqlRepository: UsersSqlRepository,
+    protected securityDeviceSqlRepository: SecurityDeviceSqlRepository,
   ) {}
 
   async loginUser(loginInputModel: LoginInputModel, request: Request) {
@@ -40,8 +42,8 @@ export class AuthService {
 
     /*в базе должен быть документ
     с приходящим емайлом или логином */
-    const user: UserDocument | null =
-      await this.usersRepository.findUserByLoginOrEmail(loginOrEmail);
+    const user: CreateUserWithId | null =
+      await this.usersSqlRepository.findUserByLoginOrEmail(loginOrEmail);
 
     if (!user) return null;
 
@@ -49,7 +51,7 @@ export class AuthService {
      * отправилось письмо на емайл для подтверждения емайла
      * и если подтвердит тогда флаг isConfirmed  сменится на true
      * и только потом можно ЗАЛОГИНИТСЯ */
-    if (user.isConfirmed === 'false') return null;
+    if (user.isConfirmed === false) return null;
 
     const passwordHash = user.passwordHash;
 
@@ -67,7 +69,7 @@ export class AuthService {
      -- в env переменную положить секрет
       ACCESSTOKEN_SECRET='12secret'*/
 
-    const userId = user._id.toString();
+    const userId = user.id;
 
     /* в токен айдишку юзера положу и в  также последней части токена
     айдишка будет и  плюс секрет- они закодированые будут
@@ -116,17 +118,18 @@ export class AuthService {
 
     const nameDevice = request.headers['user-agent'] || 'Some Device';
 
-    const newSecurityDevice: SecurityDeviceDocument =
-      new this.securityDeviceModel({
-        deviceId,
-        issuedAtRefreshToken,
-        userId,
-        ip,
-        nameDevice,
-      });
+    const newSecurityDevice: SecurityDevice = {
+      deviceId,
+      issuedAtRefreshToken,
+      userId,
+      ip,
+      nameDevice,
+    };
 
-    const securityDevice: SecurityDeviceDocument =
-      await this.securityDeviceRepository.save(newSecurityDevice);
+    const securityDevice: CreateUserWithId =
+      await this.securityDeviceSqlRepository.createNewSecurityDevice(
+        newSecurityDevice,
+      );
 
     if (!securityDevice) return null;
 

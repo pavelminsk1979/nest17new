@@ -35,27 +35,27 @@ describe('tests for andpoint auth/login', () => {
     await request(app.getHttpServer())
       .post('/auth/registration-confirmation')
       .send({
-        code: 'c3f3956d-9988-4ce6-9a63-d2e63565a40f',
+        code: '26c1dc91-1fbc-4dfb-a610-5bad97ef992d',
       })
       .expect(204);
   });
 
-  /*  it(' login  user ', async () => {
-      /!* эти значения установлены в файле
-         auth-registration.e2e-spec.ts*!/
-  
-      const login1 = 'login111';
-  
-      const password1 = 'password1';
-  
-      await request(app.getHttpServer())
-        .post('/auth/login')
-        .send({
-          loginOrEmail: login1,
-          password: password1,
-        })
-        .expect(200);
-  
-      //console.log(res.body);
-    });*/
+  it(' login  user ', async () => {
+    /* эти значения установлены в файле
+       auth-registration.e2e-spec.ts*/
+
+    const login1 = 'login29';
+
+    const password1 = 'passwor29';
+
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        loginOrEmail: login1,
+        password: password1,
+      })
+      .expect(200);
+
+    //console.log(res.body);
+  });
 });

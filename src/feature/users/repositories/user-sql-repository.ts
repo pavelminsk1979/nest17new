@@ -27,6 +27,7 @@ VALUES ($1,$2,$3,$4,$5,$6,$7);
         newUser.expirationDate,
       ],
     );
+    /*вернётся пустой массив или null*/
     return result;
   }
 
@@ -90,5 +91,22 @@ WHERE id=$2;
         строк изменилось(в данном случае еденица будет вторым элементом масива )*/
     if (result[1] === 0) return false;
     return true;
+  }
+
+  async findUserByLoginOrEmail(loginOrEmail: string) {
+    const result = await this.dataSource.query(
+      `
+select *
+from public."user" u
+where u.login = $1
+or u.email = $1
+    `,
+      [loginOrEmail],
+    );
+    /*в result будет  массив --- если не найдет запись ,  
+     тогда ПУСТОЙ МАССИВ,   если найдет запись
+     тогда первым элементом в массиве будет обьект */
+    if (result.length === 0) return null;
+    return result[0];
   }
 }
