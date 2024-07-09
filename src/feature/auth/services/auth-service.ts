@@ -38,7 +38,7 @@ export class AuthService {
   async loginUser(loginInputModel: LoginInputModel, request: Request) {
     const { loginOrEmail, password } = loginInputModel;
 
-    /*в базе должен быть документ  
+    /*в базе должен быть документ
     с приходящим емайлом или логином */
     const user: UserDocument | null =
       await this.usersRepository.findUserByLoginOrEmail(loginOrEmail);
@@ -99,10 +99,10 @@ export class AuthService {
 
     /*на каждый девайс в колекции отдельный документ
      КОГДА АКСЕССТОКЕН протухнет тогда у рефрешТокена из самого
-     токена достану deviceId и issuedAtRefreshToken И В ЛУЧШЕМ 
-     СЛУЧАЕ НАЙДУ ОДИН ДОКУМЕНТ В КОЛЕКЦИИ , и если документ есть то 
+     токена достану deviceId и issuedAtRefreshToken И В ЛУЧШЕМ
+     СЛУЧАЕ НАЙДУ ОДИН ДОКУМЕНТ В КОЛЕКЦИИ , и если документ есть то
      создам новую пару Акцес и Рефреш Токенов
-     ---userId  надо чтоб АксессТокен создавать ведь надо 
+     ---userId  надо чтоб АксессТокен создавать ведь надо
      отдавать пару токенов на фронтенд*/
 
     const ip =
@@ -141,7 +141,7 @@ export class AuthService {
      их в базе и если такие есть в базе то вернуть
      на фронт ошибку */
 
-    const isExistLogin = await this.usersRepository.isExistLogin(login);
+    const isExistLogin = await this.usersSqlRepository.isExistLogin(login);
 
     if (isExistLogin) {
       throw new BadRequestException([
@@ -152,7 +152,7 @@ export class AuthService {
       ]);
     }
 
-    const isExistEmail = await this.usersRepository.isExistEmail(email);
+    const isExistEmail = await this.usersSqlRepository.isExistEmail(email);
     if (isExistEmail) {
       throw new BadRequestException([
         {
@@ -182,9 +182,9 @@ export class AuthService {
       await this.usersSqlRepository.createNewUser(newUser);
 
     /* после того как в базе данных сущность уже создана
- ответ фронту покачто не отправляю 
+ ответ фронту покачто не отправляю
    НАДО отправить письмо с кодом на емайл тому пользователю
-   который регистрируется сейчас 
+   который регистрируется сейчас
  Н*/
 
     const code = newUser.confirmationCode;
@@ -209,8 +209,7 @@ export class AuthService {
   ) {
     const { code } = registrationConfirmationInputModel;
 
-    const user = await this.usersRepository.findUserByCode(code);
-
+    const user = await this.usersSqlRepository.findUserByCode(code);
     if (!user) return false;
 
     if (user.isConfirmed === 'true') return false;
@@ -231,13 +230,16 @@ export class AuthService {
       return false;
     }
 
-    user.isConfirmed = 'true';
+    const isConfirmed = true;
 
-    const changeUser: UserDocument = await this.usersRepository.save(user);
+    const id = user[0].id;
 
-    if (!changeUser) return false;
+    const changeUser: boolean = await this.usersSqlRepository.changeUser(
+      isConfirmed,
+      id,
+    );
 
-    return true;
+    return changeUser;
   }
 
   async registrationEmailResending(email: string) {
@@ -337,9 +339,9 @@ export class AuthService {
   async updateTokensForRequestRefreshToken(refreshToken: string) {
     const result = await this.tokenJwtService.checkRefreshToken(refreshToken);
 
-    /*  из токена достал два значения и одновременно по двум этим значениям ищу в базе один документ ЕСЛИ ДОКУМЕНТ 
-    НАШОЛСЯ то новую дату создания РЕФРЕШТОКЕНА надо в 
-    найденый документ в базу записать 
+    /*  из токена достал два значения и одновременно по двум этим значениям ищу в базе один документ ЕСЛИ ДОКУМЕНТ
+    НАШОЛСЯ то новую дату создания РЕФРЕШТОКЕНА надо в
+    найденый документ в базу записать
     и два новых токена создаю и отдаю на фронт  */
 
     if (!result) return null;

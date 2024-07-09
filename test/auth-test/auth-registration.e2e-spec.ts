@@ -32,11 +32,11 @@ describe('tests for andpoint auth/login', () => {
   });
 
   it('registration  user', async () => {
-    const login1 = 'login11';
+    const login1 = 'login119';
 
-    const password1 = 'password';
+    const password1 = 'passwor19';
 
-    const email1 = 'avelminsk197@mail.ru';
+    const email1 = 'avelminsk1819@mail.ru';
 
     await request(app.getHttpServer())
       .post('/auth/registration')

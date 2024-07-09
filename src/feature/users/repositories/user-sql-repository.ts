@@ -29,4 +29,66 @@ VALUES ($1,$2,$3,$4,$5,$6,$7);
     );
     return result;
   }
+
+  async isExistLogin(login: string) {
+    const result = await this.dataSource.query(
+      `
+    select *
+from public."user" u
+where u.login = $1
+    `,
+      [login],
+    );
+
+    if (result.length === 0) return null;
+
+    return result;
+  }
+
+  async isExistEmail(email: string) {
+    const result = await this.dataSource.query(
+      `
+    select *
+from public."user" u
+where u.email = $1
+    `,
+      [email],
+    );
+
+    if (result.length === 0) return null;
+
+    return result;
+  }
+
+  async findUserByCode(code: string) {
+    const result = await this.dataSource.query(
+      `
+    select *
+from public."user" u
+where u."confirmationCode" = $1
+    `,
+      [code],
+    );
+
+    if (result.length === 0) return null;
+
+    return result;
+  }
+
+  async changeUser(isConfirmed: boolean, id: string) {
+    const result = await this.dataSource.query(
+      `
+UPDATE public."user"
+SET  "isConfirmed"=$1
+WHERE id=$2;
+    `,
+      [isConfirmed, id],
+    );
+    /*    в result будет всегда массив и всегда первым
+        элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+        или НОЛЬ(если ничего не изменилось) или число-сколько
+        строк изменилось(в данном случае еденица будет вторым элементом масива )*/
+    if (result[1] === 0) return false;
+    return true;
+  }
 }

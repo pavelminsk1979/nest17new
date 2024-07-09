@@ -104,9 +104,6 @@ export class AuthController {
       throw new BadRequestException([
         { message: 'code already confirmed', field: 'code' },
       ]);
-      /*    throw new NotFoundException(
-        'confirmation failed :andpoint-auth,url-auth/registration-confirmation',
-      );*/
     }
   }
 
