@@ -6,6 +6,8 @@ import { UsersRepository } from '../repositories/user-repository';
 import { CreateUserInputModel } from '../api/pipes/create-user-input-model';
 import { HashPasswordService } from '../../../common/service/hash-password-service';
 import { v4 as randomCode } from 'uuid';
+import { UsersSqlRepository } from '../repositories/user-sql-repository';
+import { CreateUser } from '../api/types/dto';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -29,6 +31,7 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     protected usersRepository: UsersRepository,
     protected hashPasswordService: HashPasswordService,
+    protected usersSqlRepository: UsersSqlRepository,
   ) {}
 
   async createUser(createUserInputModel: CreateUserInputModel) {
@@ -38,7 +41,8 @@ export class UsersService {
        их в базе и если такие есть в базе то вернуть
        на фронт ошибку */
 
-    const isExistLogin = await this.usersRepository.isExistLogin(login);
+    const isExistLogin = await this.usersSqlRepository.isExistLogin(login);
+
     if (isExistLogin) {
       throw new BadRequestException([
         {
@@ -48,7 +52,8 @@ export class UsersService {
       ]);
     }
 
-    const isExistEmail = await this.usersRepository.isExistEmail(email);
+    const isExistEmail = await this.usersSqlRepository.isExistEmail(email);
+
     if (isExistEmail) {
       throw new BadRequestException([
         {
@@ -59,12 +64,8 @@ export class UsersService {
     }
 
     const passwordHash = await this.hashPasswordService.generateHash(password);
-    /*    тут создаю нового юзера---использую МОДЕЛЬКУ ЮЗЕРА(это
-        класс и при создании классу передаю данные  (это
-        обьект с значениями которые нужны (согластно 
-         СВАГЕРА) для зоздания нового юзера )) КЛАСС-МОДЕЛЬКА  ЭТО ЗАВИСИМОСТЬ -ПОЭТОМУ В НУТРИ МЕТОДА
-         ОБРАЩЕНИЕ ИДЕТ ЧЕРЕЗ  this*/
-    const newUser: UserDocument = new this.userModel({
+
+    const newUser: CreateUser = {
       login,
       passwordHash,
       email,
@@ -72,21 +73,26 @@ export class UsersService {
       confirmationCode: randomCode(),
       isConfirmed: true,
       expirationDate: new Date().toISOString(),
-    });
+    };
 
-    /*типизация умного экземпляра будет
-    export type UserDocument = HydratedDocument<User>;
-такой типизацией можно типизировать документ
-    до обращения в базу данных и у него еще не
-    будет (_id)   и такойже типизацией можно
-    типизировать после обращения к базе данных*/
+    const user: [] | null =
+      await this.usersSqlRepository.createNewUser(newUser);
 
-    const user: UserDocument = await this.usersRepository.save(newUser);
+    if (!user) return null;
 
-    return user._id.toString();
+    /*   далее нужно получить айдишку юзера 
+       -- получу её  любым способом*/
+
+    const result = await this.usersSqlRepository.isExistLogin(login);
+
+    if (!result) return null;
+
+    const id = result[0].id;
+
+    return id;
   }
 
   async deleteUserById(userId: string) {
-    return this.usersRepository.deleteUserById(userId);
+    return this.usersSqlRepository.deleteUserById(userId);
   }
 }

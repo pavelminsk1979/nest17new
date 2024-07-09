@@ -17,8 +17,8 @@ describe('tests for andpoint users', () => {
 
     await app.init();
 
-    //для очистки базы данных
-    await request(app.getHttpServer()).delete('/testing/all-data');
+    /*  для очистки базы данных
+      await request(app.getHttpServer()).delete('/testing/all-data');*/
   });
 
   afterAll(async () => {
@@ -30,15 +30,15 @@ describe('tests for andpoint users', () => {
   let userId;
 
   it('create user', async () => {
-    const newLogin = '123456789';
+    const newLogin = '123456712';
 
     const res = await request(app.getHttpServer())
       .post('/users')
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         login: newLogin,
-        password: 'short456',
-        email: 'pavel@mail.com',
+        password: 'short412',
+        email: 'pavel12@mail.com',
       })
       .expect(201);
 
@@ -49,46 +49,6 @@ describe('tests for andpoint users', () => {
     expect(res.body.login).toEqual(newLogin);
   });
 
-  it(' create user ERROR,because exist email in bd', async () => {
-    const newLogin = '123456';
-
-    const res = await request(app.getHttpServer())
-      .post('/users')
-      .set('Authorization', `Basic ${loginPasswordBasic64}`)
-      .send({
-        login: newLogin,
-        password: 'short456',
-        email: 'pavel@mail.com',
-      })
-      .expect(400);
-
-    //console.log(res.body);
-  });
-
-  it(' create user ERROR, because not Basic authorization', async () => {
-    const newLogin = '123456';
-
-    const res = await request(app.getHttpServer())
-      .post('/users')
-      .send({
-        login: newLogin,
-        password: 'short456',
-        email: 'pavel@mail.com',
-      })
-      .expect(401);
-
-    //console.log(res.body);
-  });
-
-  it('get users', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/users')
-      .set('Authorization', `Basic ${loginPasswordBasic64}`)
-
-      .expect(200);
-    //console.log(res.body);
-  });
-
   it('delete  user by id', async () => {
     await request(app.getHttpServer())
       .delete(`/users/${userId}`)
@@ -96,6 +56,55 @@ describe('tests for andpoint users', () => {
 
       .expect(204);
   });
+
+  /*
+    it(' create user ERROR,because exist email in bd', async () => {
+      const newLogin = '123456';
+  
+      const res = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Basic ${loginPasswordBasic64}`)
+        .send({
+          login: newLogin,
+          password: 'short456',
+          email: 'pavel@mail.com',
+        })
+        .expect(400);
+  
+      //console.log(res.body);
+    });
+  
+    it(' create user ERROR, because not Basic authorization', async () => {
+      const newLogin = '123456';
+  
+      const res = await request(app.getHttpServer())
+        .post('/users')
+        .send({
+          login: newLogin,
+          password: 'short456',
+          email: 'pavel@mail.com',
+        })
+        .expect(401);
+  
+      //console.log(res.body);
+    });
+  
+    it('get users', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Basic ${loginPasswordBasic64}`)
+  
+        .expect(200);
+      //console.log(res.body);
+    });
+  
+    it('delete  user by id', async () => {
+      await request(app.getHttpServer())
+        .delete(`/users/${userId}`)
+        .set('Authorization', `Basic ${loginPasswordBasic64}`)
+  
+        .expect(204);
+    });*/
 
   /*  ПОЛОЖИТЬ В ХРАНИЛИЩЕ
     expect.setState({

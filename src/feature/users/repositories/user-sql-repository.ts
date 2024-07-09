@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { CreateUser } from '../../auth/api/types/dto';
+import { CreateUser } from '../api/types/dto';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас инжектируемый
@@ -108,5 +108,25 @@ or u.email = $1
      тогда первым элементом в массиве будет обьект */
     if (result.length === 0) return null;
     return result[0];
+  }
+
+  async deleteUserById(userId: string) {
+    const result = await this.dataSource.query(
+      `
+DELETE FROM public."user"
+WHERE id=$1;
+    `,
+      [userId],
+    );
+
+    /*    в result будет всегда массив с двумя элементами
+     и всегда первым
+         элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+         или НОЛЬ(если ничего не изменилось) или число-сколько
+         строк изменилось(в данном случае еденица будет
+ вторым элементом масива )*/
+
+    if (result[1] === 0) return false;
+    return true;
   }
 }

@@ -19,7 +19,7 @@ import {
 import { SecurityDeviceRepository } from '../../security-device/repositories/security-device-repository';
 import { Request } from 'express';
 import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
-import { CreateUser, CreateUserWithId } from '../api/types/dto';
+import { CreateUser, CreateUserWithId } from '../../users/api/types/dto';
 import { SecurityDeviceSqlRepository } from '../../security-device/repositories/security-device-sql-repository';
 
 @Injectable()

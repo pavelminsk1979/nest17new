@@ -68,6 +68,7 @@ import { LimitVisitRepository } from './feature/visit-limit/repositories/limit-v
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersSqlRepository } from './feature/users/repositories/user-sql-repository';
 import { SecurityDeviceSqlRepository } from './feature/security-device/repositories/security-device-sql-repository';
+import { UserQuerySqlRepository } from './feature/users/repositories/user-query-sql-repository';
 
 dotenv.config();
 
@@ -258,6 +259,7 @@ dotenv.config();
     LimitVisitRepository,
     UsersSqlRepository,
     SecurityDeviceSqlRepository,
+    UserQuerySqlRepository,
   ],
 })
 /*export class AppModule {} в данном контексте

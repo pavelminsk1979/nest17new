@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -16,6 +17,7 @@ import { UserQueryRepository } from '../repositories/user-query-repository';
 import { CreateUserInputModel } from './pipes/create-user-input-model';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
+import { UserQuerySqlRepository } from '../repositories/user-query-sql-repository';
 
 /*подключаю данный ГАРД для всех эндпоинтов user и поэтому
 подключение
@@ -37,6 +39,7 @@ export class UsersController {
   constructor(
     protected usersService: UsersService,
     protected userQueryRepository: UserQueryRepository,
+    protected userQuerySqlRepository: UserQuerySqlRepository,
   ) {}
 
   /*@HttpCode(HttpStatus.OK)-чтобы статус код возвращать
@@ -68,10 +71,19 @@ export class UsersController {
 ошибку словит exeption filter(его надо подключить
 в main. ts)*/
   async createUser(@Body() createUserInputModel: CreateUserInputModel) {
-    const userId: string =
+    const userId: string | null =
       await this.usersService.createUser(createUserInputModel);
 
-    const user = await this.userQueryRepository.getUserById(userId);
+    if (!userId) {
+      throw new BadRequestException([
+        {
+          message: 'user not create',
+          field: 'andpoint user, method post',
+        },
+      ]);
+    }
+
+    const user = await this.userQuerySqlRepository.getUserById(userId);
 
     if (user) {
       return user;
