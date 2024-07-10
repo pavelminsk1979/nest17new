@@ -9,15 +9,15 @@ export enum SortDirection {
 export class QueryParamsInputModel {
   @IsOptional()
   @IsString()
-  public searchEmailTerm: string | null = null;
+  public searchEmailTerm: string = '';
 
   @IsOptional()
   @IsString()
-  public searchLoginTerm: string | null = null;
+  public searchLoginTerm: string = '';
 
   @IsOptional()
   @IsString()
-  public searchNameTerm: string | null = null;
+  public searchNameTerm: string = '';
 
   @IsString()
   @IsOptional()

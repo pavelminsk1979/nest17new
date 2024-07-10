@@ -95,7 +95,7 @@ export class UsersController {
 
   @Get()
   async getUsers(@Query() queryParamsUserInputModel: QueryParamsInputModel) {
-    const users = await this.userQueryRepository.getUsers(
+    const users = await this.userQuerySqlRepository.getUsers(
       queryParamsUserInputModel,
     );
     return users;
