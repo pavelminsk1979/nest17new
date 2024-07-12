@@ -129,4 +129,28 @@ WHERE id=$1;
     if (result[1] === 0) return false;
     return true;
   }
+
+  async findUserByIdAndCange(
+    id: string,
+    newCode: string,
+    newExpirationDate: string,
+  ) {
+    const result = await this.dataSource.query(
+      `
+
+UPDATE public."user"
+SET  "confirmationCode"=$1, "expirationDate"=$2
+from public."user" u
+where u.id = $3
+    `,
+      [newCode, newExpirationDate, id],
+    );
+    /*    в result будет всегда массив и всегда первым
+           элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+           или НОЛЬ(если ничего не изменилось) или число-сколько
+           строк изменилось(в данном случае еденица будет
+   вторым элементом масива )*/
+    if (result[1] === 0) return false;
+    return true;
+  }
 }

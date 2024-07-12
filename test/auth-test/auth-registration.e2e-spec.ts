@@ -23,8 +23,8 @@ describe('tests for andpoint auth/login', () => {
 
     await app.init();
 
-    /*   для очистки базы данных
-       await request(app.getHttpServer()).delete('/testing/all-data');*/
+    //для очистки базы данных
+    await request(app.getHttpServer()).delete('/testing/all-data');
   });
 
   afterAll(async () => {

@@ -114,7 +114,6 @@ export class AuthController {
     @Body()
     registrationEmailResendingInputModel: RegistrationEmailResendingInputModel,
   ) {
-    debugger;
     const { email } = registrationEmailResendingInputModel;
 
     const result: boolean =

@@ -17,8 +17,8 @@ describe('tests for andpoint users', () => {
 
     await app.init();
 
-    /*  для очистки базы данных
-      await request(app.getHttpServer()).delete('/testing/all-data');*/
+    //для очистки базы данных
+    await request(app.getHttpServer()).delete('/testing/all-data');
   });
 
   afterAll(async () => {
@@ -29,42 +29,42 @@ describe('tests for andpoint users', () => {
 
   //let userId;
 
-  it('get users', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/users')
-      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+  /*  it('get users', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/users')
+        .set('Authorization', `Basic ${loginPasswordBasic64}`)
+  
+        .expect(200);
+      console.log(res.body);
+    });*/
 
-      .expect(200);
-    console.log(res.body);
+  it('create user', async () => {
+    const newLogin = '1234442';
+
+    const res = await request(app.getHttpServer())
+      .post('/sa/users')
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        login: newLogin,
+        password: 'short442',
+        email: 'pavel42@mail.com',
+      })
+      .expect(201);
+
+    //userId = res.body.id;
+
+    // console.log(res.body);
+
+    expect(res.body.login).toEqual(newLogin);
   });
 
-  /* it('create user', async () => {
-     const newLogin = '123456712';
- 
-     const res = await request(app.getHttpServer())
-       .post('/users')
-       .set('Authorization', `Basic ${loginPasswordBasic64}`)
-       .send({
-         login: newLogin,
-         password: 'short412',
-         email: 'pavel12@mail.com',
-       })
-       .expect(201);
- 
-     userId = res.body.id;
- 
-     // console.log(res.body);
- 
-     expect(res.body.login).toEqual(newLogin);
-   });
- 
-   it('delete  user by id', async () => {
-     await request(app.getHttpServer())
-       .delete(`/users/${userId}`)
-       .set('Authorization', `Basic ${loginPasswordBasic64}`)
- 
-       .expect(204);
-   });*/
+  /*  it('delete  user by id', async () => {
+      await request(app.getHttpServer())
+        .delete(`/users/${userId}`)
+        .set('Authorization', `Basic ${loginPasswordBasic64}`)
+  
+        .expect(204);
+    });*/
 
   /*
     it(' create user ERROR,because exist email in bd', async () => {

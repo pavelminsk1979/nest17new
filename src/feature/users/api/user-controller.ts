@@ -23,7 +23,7 @@ import { UserQuerySqlRepository } from '../repositories/user-query-sql-repositor
 подключение
 Это Basik авторизация*/
 @UseGuards(AuthGuard)
-@Controller('users')
+@Controller('sa/users')
 /* @Controller()-- декоратор,
  который применяется к классу , указывает,
  что этот класс является контроллером. Контроллеры в NestJS отвечают за

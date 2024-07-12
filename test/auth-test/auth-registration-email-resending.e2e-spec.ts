@@ -32,7 +32,7 @@ describe.skip('tests for andpoint auth/registration-email-resending', () => {
     await request(app.getHttpServer())
       .post('/auth/registration-email-resending')
       .send({
-        email: 'pavelminsk1979@mail.ru',
+        email: 'avelminsk29@mail.ru',
       })
       .expect(204);
   });

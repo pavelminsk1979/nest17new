@@ -114,20 +114,19 @@ export class UserQuerySqlRepository {
    SELECT *
   FROM public."user" u
    WHERE u.login ILIKE $1 OR u.email ILIKE $2
-  ORDER BY $3 ${sortDirection}
-    LIMIT $4 OFFSET $5
+  ORDER BY "${sortBy}" ${sortDirection} 
+    LIMIT $3 OFFSET $4
  
   `,
-      [
-        `%${searchLoginTerm}%`,
-        `%${searchEmailTerm}%`,
-        sortBy,
-        pageSize,
-        amountSkip,
-      ],
+      [`%${searchLoginTerm}%`, `%${searchEmailTerm}%`, pageSize, amountSkip],
     );
-
-    /* 
+    console.log('------------');
+    console.log(sortBy);
+    console.log(sortDirection);
+    console.log(searchLoginTerm);
+    console.log(searchEmailTerm);
+    console.log('------------');
+    /*
     далее перед отправкой на фронтенд отмамплю записи из
     базы данных и добавлю поля - приведу к тому виду
     который ожидает  фронтенд
@@ -210,3 +209,7 @@ where u.id = $1
     };
   }
 }
+
+/* добавили COLLATE "C" после ORDER BY ${sortBy} ${sortDirection}. "C" - это
+   бинарный (binary) тип сравнения, который сохраняет 
+   регистр символов при сортировке.*/

@@ -246,26 +246,33 @@ export class AuthService {
   }
 
   async registrationEmailResending(email: string) {
-    debugger;
-    const user = await this.usersRepository.findUserByEmail(email);
+    const user = await this.usersSqlRepository.findUserByLoginOrEmail(email);
 
     if (!user) return false;
-
-    if (user.isConfirmed === 'true') return false;
+    debugger;
+    if (user.isConfirmed === true) return false;
 
     //новая дата протухания
-    user.expirationDate = add(new Date(), {
+    const newExpirationDate = add(new Date(), {
       hours: 1,
       minutes: 2,
     }).toISOString();
 
     //новый код подтверждения
     const newCode = randomCode();
-    user.confirmationCode = newCode;
 
-    const changeUser: UserDocument = await this.usersRepository.save(user);
+    /*  айдишка чтоб найти в таблице запись и изменить 
+      значения в двух колонках*/
 
-    if (!changeUser) return false;
+    const id = user.id;
+
+    const isChangeUser = await this.usersSqlRepository.findUserByIdAndCange(
+      id,
+      newCode,
+      newExpirationDate,
+    );
+
+    if (!isChangeUser) return false;
 
     const letter: string =
       this.emailSendService.createLetterRegistrationResending(newCode);
@@ -280,7 +287,7 @@ export class AuthService {
       );
     }
 
-    return true;
+    return isChangeUser;
   }
 
   /* Востановление пароля через подтверждение по
