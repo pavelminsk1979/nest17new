@@ -75,21 +75,12 @@ export class UsersService {
       expirationDate: new Date().toISOString(),
     };
 
-    const user: [] | null =
+    const resultId: string | null =
       await this.usersSqlRepository.createNewUser(newUser);
 
-    if (!user) return null;
+    if (!resultId) return null;
 
-    /*   далее нужно получить айдишку юзера 
-       -- получу её  любым способом*/
-
-    const result = await this.usersSqlRepository.isExistLogin(login);
-
-    if (!result) return null;
-
-    const id = result[0].id;
-
-    return id;
+    return resultId;
   }
 
   async deleteUserById(userId: string) {

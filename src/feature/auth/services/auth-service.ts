@@ -214,12 +214,12 @@ export class AuthService {
 
     const user = await this.usersSqlRepository.findUserByCode(code);
     if (!user) return false;
-
-    if (user.isConfirmed === 'true') return false;
+    debugger;
+    if (user[0].isConfirmed === true) return false;
 
     /*надо проверку даты сделать что еще не протухла*/
 
-    const expirationDate = new Date(user.expirationDate);
+    const expirationDate = new Date(user[0].expirationDate);
 
     /*-далее получаю милисекунды даты которая в базе лежала */
 
@@ -237,12 +237,12 @@ export class AuthService {
 
     const id = user[0].id;
 
-    const changeUser: boolean = await this.usersSqlRepository.changeUser(
+    const isChangeUser: boolean = await this.usersSqlRepository.changeUser(
       isConfirmed,
       id,
     );
 
-    return changeUser;
+    return isChangeUser;
   }
 
   async registrationEmailResending(email: string) {

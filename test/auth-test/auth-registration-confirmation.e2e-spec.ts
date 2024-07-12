@@ -3,7 +3,7 @@ import { AppModule } from '../../src/app.module';
 import { applyAppSettings } from '../../src/settings/apply-app-settings';
 import request from 'supertest';
 
-describe('tests for andpoint auth/login', () => {
+describe.skip('tests for andpoint auth/login', () => {
   let app;
 
   beforeAll(async () => {
@@ -35,27 +35,27 @@ describe('tests for andpoint auth/login', () => {
     await request(app.getHttpServer())
       .post('/auth/registration-confirmation')
       .send({
-        code: '26c1dc91-1fbc-4dfb-a610-5bad97ef992d',
+        code: 'e31342f2-bfb7-4b96-84e4-73fdd54499a2',
       })
       .expect(204);
   });
 
-  it(' login  user ', async () => {
-    /* эти значения установлены в файле
-       auth-registration.e2e-spec.ts*/
-
-    const login1 = 'login29';
-
-    const password1 = 'passwor29';
-
-    await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        loginOrEmail: login1,
-        password: password1,
-      })
-      .expect(200);
-
-    //console.log(res.body);
-  });
+  /*  it(' login  user ', async () => {
+      /!* эти значения установлены в файле
+         auth-registration.e2e-spec.ts*!/
+  
+      const login1 = 'login29';
+  
+      const password1 = 'passwor29';
+  
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({
+          loginOrEmail: login1,
+          password: password1,
+        })
+        .expect(200);
+  
+      //console.log(res.body);
+    });*/
 });

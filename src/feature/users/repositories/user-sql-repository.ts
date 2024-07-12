@@ -15,7 +15,8 @@ export class UsersSqlRepository {
       `
     INSERT INTO public."user"(
 login, "passwordHash", email, "createdAt", "confirmationCode", "isConfirmed", "expirationDate")
-VALUES ($1,$2,$3,$4,$5,$6,$7);
+VALUES ($1,$2,$3,$4,$5,$6,$7)
+RETURNING id;
     `,
       [
         newUser.login,
@@ -27,8 +28,12 @@ VALUES ($1,$2,$3,$4,$5,$6,$7);
         newUser.expirationDate,
       ],
     );
-    /*вернётся пустой массив или null*/
-    return result;
+
+    /*вернётся массив и в массиве одно значение
+     это будет обьект, и у этого обьекта будет ключ id,
+     или null если юзер не будет создан */
+    if (!result) return null;
+    return result[0].id;
   }
 
   async isExistLogin(login: string) {
