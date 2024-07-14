@@ -109,23 +109,21 @@ export class UserQuerySqlRepository {
 
 */
 
+    /* добавили COLLATE "C" после ORDER BY ${sortBy}  - это
+   бинарный (binary) тип сравнения, который сохраняет 
+   регистр символов при сортировке.*/
     const result = await this.dataSource.query(
       `
    SELECT *
   FROM public."user" u
    WHERE u.login ILIKE $1 OR u.email ILIKE $2
-  ORDER BY "${sortBy}" ${sortDirection} 
+  ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}  
     LIMIT $3 OFFSET $4
  
   `,
       [`%${searchLoginTerm}%`, `%${searchEmailTerm}%`, pageSize, amountSkip],
     );
-    console.log('------------');
-    console.log(sortBy);
-    console.log(sortDirection);
-    console.log(searchLoginTerm);
-    console.log(searchEmailTerm);
-    console.log('------------');
+
     /*
     далее перед отправкой на фронтенд отмамплю записи из
     базы данных и добавлю поля - приведу к тому виду
@@ -209,7 +207,3 @@ where u.id = $1
     };
   }
 }
-
-/* добавили COLLATE "C" после ORDER BY ${sortBy} ${sortDirection}. "C" - это
-   бинарный (binary) тип сравнения, который сохраняет 
-   регистр символов при сортировке.*/
