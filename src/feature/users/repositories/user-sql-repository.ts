@@ -158,4 +158,19 @@ where u.id = $3
     if (result[1] === 0) return false;
     return true;
   }
+
+  async getUserById(userId: string) {
+    const result = await this.dataSource.query(
+      `
+ select *
+from public."user" u
+where u.id = $1
+    `,
+      [userId],
+    );
+
+    if (result.length === 0) return null;
+
+    return result[0];
+  }
 }
