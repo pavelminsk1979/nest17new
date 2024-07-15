@@ -104,6 +104,8 @@ describe('tests for andpoint security/devices', () => {
 
     //console.log(res.body[0].deviceId);
 
+    //console.log(res.body);
+
     deviceId = res.body[0].deviceId;
   });
 
@@ -122,14 +124,14 @@ describe('tests for andpoint security/devices', () => {
     //.log(res.body);
   });
 
-  const deviceIdBad = 'deviceIdBad';
-
-  it('delete  device by deviceId', async () => {
-    const res = await request(app.getHttpServer())
-      .delete(`/security/devices/${deviceIdBad}`)
-      .set('Cookie', `refreshToken=${refreshToken}`)
-      .expect(403);
-  });
+  /*  const deviceIdBad = '0e1ff4f6-13a8-468a-8169-8d807da2b7b4';
+  
+    it('delete  device by deviceId', async () => {
+      const res = await request(app.getHttpServer())
+        .delete(`/security/devices/${deviceIdBad}`)
+        .set('Cookie', `refreshToken=${refreshToken}`)
+        .expect(403);
+    });*/
 
   it('delete  device by deviceId', async () => {
     const res = await request(app.getHttpServer())

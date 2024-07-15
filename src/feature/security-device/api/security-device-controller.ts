@@ -12,6 +12,7 @@ import {
 import { RefreshTokenGuard } from '../../../common/guard/refresh-token-guard';
 import { Request } from 'express';
 import { SecurityDeviceService } from '../services/security-device-service';
+import { ViewSecurityDevice } from './types/views';
 
 @UseGuards(RefreshTokenGuard)
 @Controller('security/devices')
@@ -24,10 +25,11 @@ export class SecurityDeviceController {
 
     const issuedAtRefreshToken = request['issuedAtRefreshToken'];
 
-    const result = await this.securityDeviceService.getAllDevicesCorrectUser(
-      deviceId,
-      issuedAtRefreshToken,
-    );
+    const result: ViewSecurityDevice[] | null =
+      await this.securityDeviceService.getAllDevicesCorrectUser(
+        deviceId,
+        issuedAtRefreshToken,
+      );
 
     if (result) {
       return result;

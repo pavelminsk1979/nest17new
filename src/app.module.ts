@@ -69,6 +69,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersSqlRepository } from './feature/users/repositories/user-sql-repository';
 import { SecurityDeviceSqlRepository } from './feature/security-device/repositories/security-device-sql-repository';
 import { UserQuerySqlRepository } from './feature/users/repositories/user-query-sql-repository';
+import { SecurityDeviceSqlQueryRepository } from './feature/security-device/repositories/security-device-sql-query-repository';
 
 dotenv.config();
 
@@ -260,6 +261,7 @@ dotenv.config();
     UsersSqlRepository,
     SecurityDeviceSqlRepository,
     UserQuerySqlRepository,
+    SecurityDeviceSqlQueryRepository,
   ],
 })
 /*export class AppModule {} в данном контексте

@@ -4,45 +4,51 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { SecurityDeviceRepository } from '../repositories/security-device-repository';
-import { SecurityDeviceQueryRepository } from '../repositories/security-device-query-repository';
+import { SecurityDeviceSqlRepository } from '../repositories/security-device-sql-repository';
+import { SecurityDeviceSqlQueryRepository } from '../repositories/security-device-sql-query-repository';
 
 @Injectable()
 export class SecurityDeviceService {
   constructor(
     protected securityDeviceRepository: SecurityDeviceRepository,
-    protected securityDeviceQueryRepository: SecurityDeviceQueryRepository,
+    protected securityDeviceSqlRepository: SecurityDeviceSqlRepository,
+    protected securityDeviceSqlQueryRepository: SecurityDeviceSqlQueryRepository,
   ) {}
 
   async getAllDevicesCorrectUser(
     deviceId: string,
     issuedAtRefreshToken: string,
   ) {
-    const oneDevice = await this.securityDeviceRepository.findDeviceByIdAndDate(
-      deviceId,
-      issuedAtRefreshToken,
-    );
+    const oneDevice =
+      await this.securityDeviceSqlRepository.findDeviceByIdAndDate(
+        deviceId,
+        issuedAtRefreshToken,
+      );
 
     if (!oneDevice) return null;
 
     const userId = oneDevice.userId;
 
-    return this.securityDeviceQueryRepository.getAllDevicesCorrectUser(userId);
+    return this.securityDeviceSqlQueryRepository.getAllDevicesCorrectUser(
+      userId,
+    );
   }
 
   async deleteDevicesExeptCurrentDevice(
     deviceId: string,
     issuedAtRefreshToken: string,
   ) {
-    const oneDevice = await this.securityDeviceRepository.findDeviceByIdAndDate(
-      deviceId,
-      issuedAtRefreshToken,
-    );
+    const oneDevice =
+      await this.securityDeviceSqlRepository.findDeviceByIdAndDate(
+        deviceId,
+        issuedAtRefreshToken,
+      );
 
     if (!oneDevice) return null;
 
     const userId = oneDevice.userId;
 
-    await this.securityDeviceRepository.deleteDevicesExeptCurrentDevice(
+    await this.securityDeviceSqlRepository.deleteDevicesExeptCurrentDevice(
       userId,
       deviceId,
     );
@@ -55,7 +61,7 @@ export class SecurityDeviceService {
     deviceIdFromParam: string,
   ) {
     const device =
-      await this.securityDeviceRepository.findDeviceByDeviceId(
+      await this.securityDeviceSqlRepository.findDeviceByDeviceId(
         deviceIdFromParam,
       );
 
@@ -66,7 +72,7 @@ export class SecurityDeviceService {
        мне надо найти документ  по deviceIdFromRefreshToen*/
 
     const deviceCurrentUser =
-      await this.securityDeviceRepository.findDeviceByDeviceId(
+      await this.securityDeviceSqlRepository.findDeviceByDeviceId(
         deviceIdFromRefreshToken,
       );
 
@@ -75,7 +81,7 @@ export class SecurityDeviceService {
     const userId = deviceCurrentUser.userId;
 
     const correctDevice =
-      await this.securityDeviceRepository.findDeviceByUserIdAndDeviceIdFromParam(
+      await this.securityDeviceSqlRepository.findDeviceByUserIdAndDeviceIdFromParam(
         userId,
         deviceIdFromParam,
       );
@@ -87,7 +93,7 @@ export class SecurityDeviceService {
       );
     }
 
-    return this.securityDeviceRepository.deleteDeviceByDeviceId(
+    return this.securityDeviceSqlRepository.deleteDeviceByDeviceId(
       deviceIdFromParam,
     );
   }
