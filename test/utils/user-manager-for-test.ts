@@ -8,7 +8,7 @@ export class UserManagerForTest {
     const loginPasswordBasic64 = 'YWRtaW46cXdlcnR5';
 
     const user = await request(this.app.getHttpServer())
-      .post('/users')
+      .post('/sa/users')
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         login,

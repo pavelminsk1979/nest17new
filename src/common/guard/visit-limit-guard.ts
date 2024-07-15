@@ -18,23 +18,21 @@ export class VisitLimitGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request: Request = context.switchToHttp().getRequest();
-    /* 
-    
-        const ip =
-          (request.headers['x-forwarded-for'] as string) ||
-          (request.socket.remoteAddress as string);
-    
-        const url = request.originalUrl;
-    
-        const date = new Date().toISOString();
-    
-          
-        const isLimitTooMany = await this.limitVisitService.checkLimitVisits(
-             ip,
-             url,
-             date,
-           );*/
-    const isLimitTooMany = false;
+
+    const ip =
+      (request.headers['x-forwarded-for'] as string) ||
+      (request.socket.remoteAddress as string);
+
+    const url = request.originalUrl;
+
+    const date = new Date().toISOString();
+
+    const isLimitTooMany = await this.limitVisitService.checkLimitVisits(
+      ip,
+      url,
+      date,
+    );
+    //const isLimitTooMany = false;
 
     if (isLimitTooMany) {
       /*  HTTP-статус код 429*/

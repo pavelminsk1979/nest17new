@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from '../services/user-service';
-import { UserQueryRepository } from '../repositories/user-query-repository';
 import { CreateUserInputModel } from './pipes/create-user-input-model';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
@@ -38,7 +37,6 @@ export class UsersController {
    внедряет экземпляры классов UsersService и UserQueryRepository */
   constructor(
     protected usersService: UsersService,
-    protected userQueryRepository: UserQueryRepository,
     protected userQuerySqlRepository: UserQuerySqlRepository,
   ) {}
 

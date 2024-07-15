@@ -182,7 +182,6 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const refreshToken: string = request.cookies.refreshToken;
-
     const result: { newAccessToken: string; newRefreshToken: string } | null =
       await this.authService.updateTokensForRequestRefreshToken(refreshToken);
 

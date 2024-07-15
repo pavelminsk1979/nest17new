@@ -358,7 +358,7 @@ export class AuthService {
 
     const { deviceId, issuedAtRefreshToken } = result;
 
-    const device = await this.securityDeviceRepository.findDeviceByIdAndDate(
+    const device = await this.securityDeviceSqlRepository.findDeviceByIdAndDate(
       deviceId,
       issuedAtRefreshToken,
     );
@@ -380,10 +380,11 @@ export class AuthService {
     ДЛЯ ДОКУМЕНТА С КОТОРЫМ УЖЕ РАБОТАЛ_КОТОРЫЙ УЖЕ СУЩЕСТВУЕТ
     В БАЗЕ ДАННЫХ*/
 
-    device.issuedAtRefreshToken = newIssuedAtRefreshToken;
-
-    const updateDevice: SecurityDeviceDocument =
-      await this.securityDeviceRepository.save(device);
+    const updateDevice: boolean =
+      await this.securityDeviceSqlRepository.changeSecurityDevice(
+        device.id,
+        newIssuedAtRefreshToken,
+      );
 
     if (!updateDevice) return null;
 
