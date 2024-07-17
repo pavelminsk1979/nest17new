@@ -6,11 +6,12 @@ export type CreatePost = {
   createdAt: string;
 };
 
-export type CreatePostWithId = {
+export type CreatePostWithIdAndWithNameBlog = {
   id: string;
   title: string;
   shortDescription: string;
   content: string;
   blogId: string;
   createdAt: string;
+  name: string;
 };

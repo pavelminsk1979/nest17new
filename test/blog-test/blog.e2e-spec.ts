@@ -8,6 +8,8 @@ describe('tests for andpoint blogs', () => {
 
   let idBlog;
 
+  let idBlog1;
+
   const loginPasswordBasic64 = 'YWRtaW46cXdlcnR5';
 
   beforeAll(async () => {
@@ -39,6 +41,8 @@ describe('tests for andpoint blogs', () => {
         websiteUrl: 'https://www.outue11.com/',
       })
       .expect(201);
+
+    idBlog1 = res.body.id;
 
     //console.log(res.body);
   });
@@ -100,6 +104,76 @@ describe('tests for andpoint blogs', () => {
         blogId: idBlog,
       })
       .expect(201);
+
+    //console.log(res.body);
+  });
+
+  it('create post', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/posts')
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        title: 'titlePost12',
+        shortDescription: 'shortDescriptionPost12',
+        content: 'contentPost12',
+        blogId: idBlog,
+      })
+      .expect(201);
+
+    //console.log(res.body);
+  });
+
+  it('create post', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/posts')
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        title: 'titlePost222',
+        shortDescription: 'shortDescriptionPost222',
+        content: 'contentPost222',
+        blogId: idBlog1,
+      })
+      .expect(201);
+
+    //console.log(res.body);
+  });
+
+  it('create post', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/posts')
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        title: 'titlePost223',
+        shortDescription: 'shortDescriptionPost223',
+        content: 'contentPost223',
+        blogId: idBlog1,
+      })
+      .expect(201);
+
+    //console.log(res.body);
+  });
+
+  it('create post', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/posts')
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        title: 'titlePost224',
+        shortDescription: 'shortDescriptionPost224',
+        content: 'contentPost224',
+        blogId: idBlog1,
+      })
+      .expect(201);
+
+    //console.log(res.body);
+  });
+
+  it('get all  posts', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/posts')
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+
+      .expect(200);
 
     console.log(res.body);
   });

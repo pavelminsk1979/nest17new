@@ -46,7 +46,7 @@ export class PostService {
       await this.blogSqlRepository.findBlog(blogId);
 
     if (!blog) return null;
-    debugger;
+
     /* создаю документ post */
     const newPost: CreatePost = {
       title,

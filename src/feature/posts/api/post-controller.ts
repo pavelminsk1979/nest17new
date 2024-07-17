@@ -50,7 +50,7 @@ export class PostsController {
   ): Promise<PostWithLikesInfo | null> {
     /* создать новый пост  и вернуть данные этого поста и также
     внутри структуру данных(снулевыми значениями)  о лайках  к этому посту*/
-    debugger;
+
     const postId: string | null =
       await this.postService.createPost(createPostInputModel);
 
@@ -74,20 +74,17 @@ export class PostsController {
   @Get()
   async getPosts(
     @Query() queryParamsPostInputModel: QueryParamsInputModel,
-    @Req() request: Request,
+    //@Req() request: Request,
   ): Promise<ViewModelWithArrayPosts> {
     /*Айдишка пользователя нужна для-- когда
- отдадим ответ в нем дудет информация
+ отдадим ответ в нем будет информация
  о том какой статус учтановил данный пользователь
  который этот запрос делает */
 
-    const userId: string | null = request['userId'];
+    //const userId: string | null = request['userId'];
 
     const posts: ViewModelWithArrayPosts =
-      await this.postQueryRepository.getPosts(
-        userId,
-        queryParamsPostInputModel,
-      );
+      await this.postQuerySqlRepository.getPosts(queryParamsPostInputModel);
 
     return posts;
   }
