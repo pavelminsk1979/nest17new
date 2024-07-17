@@ -31,6 +31,7 @@ import { AuthGuard } from '../../../common/guard/auth-guard';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
 import { Request } from 'express';
+import { BlogQuerySqlRepository } from '../repositories/blog-query-sql-repository';
 
 @Controller('blogs')
 export class BlogController {
@@ -41,6 +42,7 @@ export class BlogController {
     protected commandBus: CommandBus,
     protected blogQueryRepository: BlogQueryRepository,
     protected postQueryRepository: PostQueryRepository,
+    protected blogQuerySqlRepository: BlogQuerySqlRepository,
   ) {}
 
   /*Nest.js автоматически возвращает следующие
@@ -57,11 +59,15 @@ export class BlogController {
   async createBlog(
     @Body() createBlogInputModel: CreateBlogInputModel,
   ): Promise<ViewBlog> {
-    const id = await this.commandBus.execute(
+    const id: string | null = await this.commandBus.execute(
       new CreateBlogCommand(createBlogInputModel),
     );
 
-    const blog = await this.blogQueryRepository.getBlogById(id);
+    if (!id) {
+      throw new NotFoundException('blog not create:andpoint-post,url /blogs');
+    }
+
+    const blog = await this.blogQuerySqlRepository.getBlogById(id);
 
     if (blog) {
       return blog;
@@ -72,7 +78,7 @@ export class BlogController {
 
   @Get()
   async getBlogs(@Query() queryParamsBlogInputModel: QueryParamsInputModel) {
-    const blogs = await this.blogQueryRepository.getBlogs(
+    const blogs = await this.blogQuerySqlRepository.getBlogs(
       queryParamsBlogInputModel,
     );
 
@@ -81,7 +87,7 @@ export class BlogController {
 
   @Get(':id')
   async getBlogById(@Param('id') bologId: string) {
-    const blog = await this.blogQueryRepository.getBlogById(bologId);
+    const blog = await this.blogQuerySqlRepository.getBlogById(bologId);
 
     if (blog) {
       return blog;

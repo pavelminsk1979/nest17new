@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Blog, BlogDocument } from '../domains/domain-blog';
 import { BlogRepository } from '../repositories/blog-repository';
 import { CreateBlogInputModel } from '../api/pipes/create-blog-input-model';
 import { CommandHandler } from '@nestjs/cqrs';
+import { CreateBlog } from '../api/types/dto';
+import { BlogSqlRepository } from '../repositories/blog-sql-repository';
 
 export class CreateBlogCommand {
   constructor(public createBlogInputModel: CreateBlogInputModel) {}
@@ -14,23 +13,24 @@ export class CreateBlogCommand {
 @Injectable()
 export class CreateBlogService {
   constructor(
-    @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
+    protected blogSqlRepository: BlogSqlRepository,
     protected blogRepository: BlogRepository,
   ) {}
 
-  async execute(command: CreateBlogCommand): Promise<string> {
+  async execute(command: CreateBlogCommand): Promise<string | null> {
     const { name, websiteUrl, description } = command.createBlogInputModel;
 
-    const newBlog: BlogDocument = new this.blogModel({
+    const newBlog: CreateBlog = {
       name,
       description,
       websiteUrl,
       createdAt: new Date().toISOString(),
       isMembership: false,
-    });
+    };
 
-    const blog: BlogDocument = await this.blogRepository.save(newBlog);
+    const blogId: string | null =
+      await this.blogSqlRepository.createNewBlog(newBlog);
 
-    return blog._id.toString();
+    return blogId;
   }
 }

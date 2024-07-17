@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { BlogDocument } from '../../blogs/domains/domain-blog';
-import { BlogRepository } from '../../blogs/repositories/blog-repository';
 import { Post, PostDocument } from '../domains/domain-post';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -14,6 +13,9 @@ import {
   LikeStatusForPostDocument,
 } from '../../like-status-for-post/domain/domain-like-status-for-post';
 import { UsersRepository } from '../../users/repositories/user-repository';
+import { BlogSqlRepository } from '../../blogs/repositories/blog-sql-repository';
+import { CreatePost } from '../api/types/dto';
+import { PostSqlRepository } from '../repositories/post-sql-repository';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -25,13 +27,14 @@ import { UsersRepository } from '../../users/repositories/user-repository';
  возможно внедрить как зависимость*/
 export class PostService {
   constructor(
-    protected blogRepository: BlogRepository,
+    protected postSqlRepository: PostSqlRepository,
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
     protected postRepository: PostRepository,
     protected likeStatusForPostRepository: LikeStatusForPostRepository,
     @InjectModel(LikeStatusForPost.name)
     protected likeStatusModelForPost: Model<LikeStatusForPostDocument>,
     protected usersRepository: UsersRepository,
+    protected blogSqlRepository: BlogSqlRepository,
   ) {}
 
   async createPost(createPostInputModel: CreatePostInputModel) {
@@ -39,27 +42,23 @@ export class PostService {
 
     /* нужно получить документ блога из базы чтобы взять от него
 поле blogName*/
-
     const blog: BlogDocument | null =
-      await this.blogRepository.findBlog(blogId);
+      await this.blogSqlRepository.findBlog(blogId);
 
     if (!blog) return null;
-
-    const blogName = blog.name;
-
+    debugger;
     /* создаю документ post */
-    const newPost: PostDocument = new this.postModel({
+    const newPost: CreatePost = {
       title,
       shortDescription,
       content,
       blogId,
-      blogName,
       createdAt: new Date().toISOString(),
-    });
+    };
+    const postId: string | null =
+      await this.postSqlRepository.createPost(newPost);
 
-    const post: PostDocument = await this.postRepository.save(newPost);
-
-    return post._id.toString();
+    return postId;
   }
 
   async updatePost(

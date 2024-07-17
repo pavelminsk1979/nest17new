@@ -16,6 +16,13 @@ export class TestController {
     await this.dataSource.query(`
     DELETE FROM public."user"
     `);
+    await this.dataSource.query(`
+    DELETE FROM public."post"
+    `);
+    await this.dataSource.query(`
+    DELETE FROM public."blog"
+    `);
+
     return;
   }
 }

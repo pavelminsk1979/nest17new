@@ -29,6 +29,7 @@ import { Request } from 'express';
 import { SetLikeStatusForPostInputModel } from './pipes/set-like-status-input-model';
 import { LikeStatusForPostDocument } from '../../like-status-for-post/domain/domain-like-status-for-post';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
+import { PostQuerySqlRepository } from '../repositories/post-query-sql-repository';
 
 @Controller('posts')
 export class PostsController {
@@ -37,6 +38,7 @@ export class PostsController {
     protected postQueryRepository: PostQueryRepository,
     protected commentQueryRepository: CommentQueryRepository,
     protected commentService: CommentService,
+    protected postQuerySqlRepository: PostQuerySqlRepository,
   ) {}
 
   @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
@@ -45,17 +47,10 @@ export class PostsController {
   @Post()
   async createPost(
     @Body() createPostInputModel: CreatePostInputModel,
-    @Req() request: Request,
   ): Promise<PostWithLikesInfo | null> {
-    const userId: string | null = request['userId'];
-    /* чтобы переиспользовать в этом обработчике метод
-   getPostById  ему нужна (userId)- она будет
-   в данном случае null но главное что удовлетворяю
-   метод значением-userId*/
-
     /* создать новый пост  и вернуть данные этого поста и также
     внутри структуру данных(снулевыми значениями)  о лайках  к этому посту*/
-
+    debugger;
     const postId: string | null =
       await this.postService.createPost(createPostInputModel);
 
@@ -66,7 +61,7 @@ export class PostsController {
     }
 
     const post: PostWithLikesInfo | null =
-      await this.postQueryRepository.getPostById(userId, postId);
+      await this.postQuerySqlRepository.getPostById(postId);
 
     if (post) {
       return post;

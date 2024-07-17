@@ -70,6 +70,10 @@ import { UsersSqlRepository } from './feature/users/repositories/user-sql-reposi
 import { SecurityDeviceSqlRepository } from './feature/security-device/repositories/security-device-sql-repository';
 import { UserQuerySqlRepository } from './feature/users/repositories/user-query-sql-repository';
 import { SecurityDeviceSqlQueryRepository } from './feature/security-device/repositories/security-device-sql-query-repository';
+import { BlogSqlRepository } from './feature/blogs/repositories/blog-sql-repository';
+import { BlogQuerySqlRepository } from './feature/blogs/repositories/blog-query-sql-repository';
+import { PostSqlRepository } from './feature/posts/repositories/post-sql-repository';
+import { PostQuerySqlRepository } from './feature/posts/repositories/post-query-sql-repository';
 
 dotenv.config();
 
@@ -262,6 +266,10 @@ dotenv.config();
     SecurityDeviceSqlRepository,
     UserQuerySqlRepository,
     SecurityDeviceSqlQueryRepository,
+    BlogSqlRepository,
+    BlogQuerySqlRepository,
+    PostSqlRepository,
+    PostQuerySqlRepository,
   ],
 })
 /*export class AppModule {} в данном контексте
