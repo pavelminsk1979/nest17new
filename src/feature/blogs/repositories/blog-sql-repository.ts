@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CreateBlog } from '../api/types/dto';
+import { CreateBlogInputModel } from '../api/pipes/create-blog-input-model';
 
 @Injectable()
 export class BlogSqlRepository {
@@ -47,5 +48,53 @@ where b.id = $1
     if (result.length === 0) return null;
 
     return result[0];
+  }
+
+  async updateBlog(blogId: string, updateBlogInputModel: CreateBlogInputModel) {
+    const result = await this.dataSource.query(
+      `
+    
+    UPDATE public.blog
+SET  name=$1, description=$2, "websiteUrl"=$3
+WHERE id=$4;
+    
+    `,
+      [
+        updateBlogInputModel.name,
+        updateBlogInputModel.description,
+        updateBlogInputModel.websiteUrl,
+        blogId,
+      ],
+    );
+
+    /*    в result будет всегда массив и всегда первым
+      элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+      или НОЛЬ(если ничего не изменилось) или число-сколько
+      строк изменилось(в данном случае еденица будет 
+вторым элементом масива )*/
+    if (result[1] === 0) return false;
+    return true;
+  }
+
+  async deleteBlogById(blogId: string) {
+    const result = await this.dataSource.query(
+      `
+    
+    DELETE FROM public.blog
+WHERE  id=$1;
+    
+    `,
+      [blogId],
+    );
+
+    /*    в result будет всегда массив с двумя элементами
+    и всегда первым
+        элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+        или НОЛЬ(если ничего не изменилось) или число-сколько
+        строк изменилось(в данном случае еденица будет
+вторым элементом масива )*/
+
+    if (result[1] === 0) return false;
+    return true;
   }
 }

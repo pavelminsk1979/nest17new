@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { BlogRepository } from '../repositories/blog-repository';
 import { CreateBlogInputModel } from '../api/pipes/create-blog-input-model';
 import { CommandHandler } from '@nestjs/cqrs';
+import { BlogSqlRepository } from '../repositories/blog-sql-repository';
 
 export class UpdateBlogCommand {
   constructor(
@@ -13,10 +13,10 @@ export class UpdateBlogCommand {
 @CommandHandler(UpdateBlogCommand)
 @Injectable()
 export class UpdateBlogService {
-  constructor(protected blogRepository: BlogRepository) {}
+  constructor(protected blogSqlRepository: BlogSqlRepository) {}
 
   async execute(command: UpdateBlogCommand) {
-    return this.blogRepository.updateBlog(
+    return this.blogSqlRepository.updateBlog(
       command.blogId,
       command.updateBlogInputModel,
     );

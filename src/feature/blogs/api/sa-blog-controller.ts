@@ -1,22 +1,31 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ViewBlog } from './types/views';
 import { PostQueryRepository } from '../../posts/repositories/post-query-repository';
 import {
   PostWithLikesInfo,
   ViewModelWithArrayPosts,
 } from '../../posts/api/types/views';
+import { CreateBlogInputModel } from './pipes/create-blog-input-model';
 import { CreatePostForBlogInputModel } from './pipes/create-post-for-blog-input-model';
+import { DeleteBlogByIdCommand } from '../services/delete-blog-by-id-service';
+import { UpdateBlogCommand } from '../services/update-blog-service';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostForBlogCommand } from '../services/create-post-for-blog-service';
+import { CreateBlogCommand } from '../services/create-blog-service';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
@@ -24,8 +33,8 @@ import { Request } from 'express';
 import { BlogQuerySqlRepository } from '../repositories/blog-query-sql-repository';
 import { PostQuerySqlRepository } from '../../posts/repositories/post-query-sql-repository';
 
-@Controller('blogs')
-export class BlogController {
+@Controller('sa/blogs')
+export class SaBlogController {
   constructor(
     /*это sqrs и service разбит на подчасти
      * и в каждой отдельный метод
@@ -43,38 +52,38 @@ export class BlogController {
   а ошибки по умолчанию
   post 400,get 404, delete 404, put 400*/
 
-  /*  @UseGuards(AuthGuard)
-    /!*@HttpCode(HttpStatus.CREATED) необязательно
-     * ибо метод пост поумолчанию HTTP-статус 201 *!/
-    @Post()
-    async createBlog(
-      @Body() createBlogInputModel: CreateBlogInputModel,
-    ): Promise<ViewBlog> {
-      const id: string | null = await this.commandBus.execute(
-        new CreateBlogCommand(createBlogInputModel),
-      );
-  
-      if (!id) {
-        throw new NotFoundException('blog not create:andpoint-post,url /blogs');
-      }
-  
-      const blog = await this.blogQuerySqlRepository.getBlogById(id);
-  
-      if (blog) {
-        return blog;
-      } else {
-        throw new NotFoundException('blog not found:andpoint-post,url /blogs');
-      }
-    }*/
+  @UseGuards(AuthGuard)
+  /*@HttpCode(HttpStatus.CREATED) необязательно
+   * ибо метод пост поумолчанию HTTP-статус 201 */
+  @Post()
+  async createBlog(
+    @Body() createBlogInputModel: CreateBlogInputModel,
+  ): Promise<ViewBlog> {
+    const id: string | null = await this.commandBus.execute(
+      new CreateBlogCommand(createBlogInputModel),
+    );
 
-  /*  @Get()
+    if (!id) {
+      throw new NotFoundException('blog not create:andpoint-post,url /blogs');
+    }
+
+    const blog = await this.blogQuerySqlRepository.getBlogById(id);
+
+    if (blog) {
+      return blog;
+    } else {
+      throw new NotFoundException('blog not found:andpoint-post,url /blogs');
+    }
+  }
+
+  @Get()
   async getBlogs(@Query() queryParamsBlogInputModel: QueryParamsInputModel) {
     const blogs = await this.blogQuerySqlRepository.getBlogs(
       queryParamsBlogInputModel,
     );
 
     return blogs;
-  }*/
+  }
 
   @Get(':id')
   async getBlogById(@Param('id') bologId: string) {
@@ -87,24 +96,24 @@ export class BlogController {
     }
   }
 
-  /*  @UseGuards(AuthGuard)
-    @HttpCode(HttpStatus.NO_CONTENT)
-    @Delete(':id')
-    async deleteBlogById(@Param('id') blogId: string) {
-      const isDeleteBlogById: boolean | null = await this.commandBus.execute(
-        new DeleteBlogByIdCommand(blogId),
-      );
-  
-      if (isDeleteBlogById) {
-        return;
-      } else {
-        throw new NotFoundException(
-          'blog not found:andpoint-delete,url /blogs/id',
-        );
-      }
-    }*/
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  async deleteBlogById(@Param('id') blogId: string) {
+    const isDeleteBlogById: boolean | null = await this.commandBus.execute(
+      new DeleteBlogByIdCommand(blogId),
+    );
 
-  /*  @UseGuards(AuthGuard)
+    if (isDeleteBlogById) {
+      return;
+    } else {
+      throw new NotFoundException(
+        'blog not found:andpoint-delete,url /blogs/id',
+      );
+    }
+  }
+
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Put(':id')
   async updateBlog(
@@ -122,7 +131,7 @@ export class BlogController {
         'blog not update:andpoint-put ,url /blogs/id',
       );
     }
-  }*/
+  }
 
   @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
   @Post(':blogId/posts')

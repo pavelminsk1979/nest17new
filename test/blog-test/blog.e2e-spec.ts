@@ -10,6 +10,8 @@ describe('tests for andpoint blogs', () => {
 
   let idBlog1;
 
+  let idBlogForUpdate;
+
   const loginPasswordBasic64 = 'YWRtaW46cXdlcnR5';
 
   beforeAll(async () => {
@@ -33,7 +35,7 @@ describe('tests for andpoint blogs', () => {
 
   it('create   blog', async () => {
     const res = await request(app.getHttpServer())
-      .post('/blogs')
+      .post('/sa/blogs')
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         name: 'name11',
@@ -49,7 +51,7 @@ describe('tests for andpoint blogs', () => {
 
   it('create   blog', async () => {
     const res = await request(app.getHttpServer())
-      .post('/blogs')
+      .post('/sa/blogs')
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         name: 'name12',
@@ -65,7 +67,7 @@ describe('tests for andpoint blogs', () => {
 
   it('create   blog', async () => {
     const res = await request(app.getHttpServer())
-      .post('/blogs')
+      .post('/sa/blogs')
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         name: 'name13',
@@ -74,6 +76,30 @@ describe('tests for andpoint blogs', () => {
       })
       .expect(201);
 
+    //console.log(res.body);
+
+    idBlogForUpdate = res.body.id;
+  });
+
+  it('update   blog by id', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/sa/blogs/${idBlogForUpdate}`)
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        name: 'nameUpdate',
+        description: 'descripUpdate',
+        websiteUrl: 'https://www.outueUpd.com/',
+      })
+      .expect(204);
+    //console.log(res.body);
+  });
+
+  it('delete   blog by id', async () => {
+    const res = await request(app.getHttpServer())
+      .delete(`/sa/blogs/${idBlogForUpdate}`)
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+
+      .expect(204);
     //console.log(res.body);
   });
 
@@ -87,7 +113,7 @@ describe('tests for andpoint blogs', () => {
 
   it('get all  blogs ', async () => {
     const res = await request(app.getHttpServer())
-      .get('/blogs')
+      .get('/sa/blogs')
 
       .expect(200);
     //console.log(res.body);

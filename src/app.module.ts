@@ -74,6 +74,7 @@ import { BlogSqlRepository } from './feature/blogs/repositories/blog-sql-reposit
 import { BlogQuerySqlRepository } from './feature/blogs/repositories/blog-query-sql-repository';
 import { PostSqlRepository } from './feature/posts/repositories/post-sql-repository';
 import { PostQuerySqlRepository } from './feature/posts/repositories/post-query-sql-repository';
+import { SaBlogController } from './feature/blogs/api/sa-blog-controller';
 
 dotenv.config();
 
@@ -228,6 +229,7 @@ dotenv.config();
     TestController,
     AuthController,
     SecurityDeviceController,
+    SaBlogController,
   ],
   /* все сервисы приложения должны тут добавлены */
   providers: [
