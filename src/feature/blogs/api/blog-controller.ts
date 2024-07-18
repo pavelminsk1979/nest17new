@@ -57,14 +57,14 @@ export class BlogController {
       }
     }*/
 
-  /*  @Get()
+  @Get()
   async getBlogs(@Query() queryParamsBlogInputModel: QueryParamsInputModel) {
     const blogs = await this.blogQuerySqlRepository.getBlogs(
       queryParamsBlogInputModel,
     );
 
     return blogs;
-  }*/
+  }
 
   @Get(':id')
   async getBlogById(@Param('id') bologId: string) {

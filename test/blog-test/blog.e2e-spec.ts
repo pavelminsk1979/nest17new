@@ -113,9 +113,17 @@ describe('tests for andpoint blogs', () => {
     //console.log(res.body);
   });
 
-  it('get all  blogs ', async () => {
+  it('get all  blogs andpoint SaBlogs', async () => {
     const res = await request(app.getHttpServer())
       .get('/sa/blogs')
+
+      .expect(200);
+    //console.log(res.body);
+  });
+
+  it('get all  blogs andpoint Blogs ', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/blogs')
 
       .expect(200);
     //console.log(res.body);
