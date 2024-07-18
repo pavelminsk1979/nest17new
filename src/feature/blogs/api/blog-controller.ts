@@ -13,7 +13,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BlogQueryRepository } from '../repositories/blog-query-repository';
 import { ViewBlog } from './types/views';
 import { PostQueryRepository } from '../../posts/repositories/post-query-repository';
 import {
@@ -32,6 +31,7 @@ import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
 import { Request } from 'express';
 import { BlogQuerySqlRepository } from '../repositories/blog-query-sql-repository';
+import { PostQuerySqlRepository } from '../../posts/repositories/post-query-sql-repository';
 
 @Controller('blogs')
 export class BlogController {
@@ -40,9 +40,9 @@ export class BlogController {
      * и в каждой отдельный метод
      * конспект 1501*/
     protected commandBus: CommandBus,
-    protected blogQueryRepository: BlogQueryRepository,
     protected postQueryRepository: PostQueryRepository,
     protected blogQuerySqlRepository: BlogQuerySqlRepository,
+    protected postQuerySqlRepository: PostQuerySqlRepository,
   ) {}
 
   /*Nest.js автоматически возвращает следующие
@@ -178,20 +178,19 @@ export class BlogController {
   async getPostsForBlog(
     @Param('blogId') blogId: string,
     @Query() queryParamsPostForBlogInputModel: QueryParamsInputModel,
-    @Req() request: Request,
+    //@Req() request: Request,
   ): Promise<ViewModelWithArrayPosts> {
     /*Айдишка пользователя нужна для-- когда
     отдадим ответ в нем дудет информация 
     о том какой статус учтановил данный пользователь
     который этот запрос делает */
 
-    const userId: string | null = request['userId'];
+    // const userId: string | null = request['userId'];
 
     //вернуть все posts(массив) для корректного блога
     //и у каждого поста  будут данные о лайках
 
-    const posts = await this.postQueryRepository.getPostsByCorrectBlogId(
-      userId,
+    const posts = await this.postQuerySqlRepository.getPostsByCorrectBlogId(
       blogId,
       queryParamsPostForBlogInputModel,
     );

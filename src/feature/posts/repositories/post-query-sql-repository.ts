@@ -12,6 +12,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PostWithLikesInfo } from '../api/types/views';
 import { CreatePostWithIdAndWithNameBlog } from '../api/types/dto';
+import { BlogSqlRepository } from '../../blogs/repositories/blog-sql-repository';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -27,6 +28,7 @@ export class PostQuerySqlRepository {
     protected likeStatusForPostRepository: LikeStatusForPostRepository,
     protected blogRepository: BlogRepository,
     @InjectDataSource() protected dataSource: DataSource,
+    protected blogSqlRepository: BlogSqlRepository,
   ) {}
 
   async getPosts(queryParamsPostForBlog: QueryParamsInputModel) {
@@ -156,248 +158,108 @@ pagesCount это число
         newestLikes: [],
       },
     };
+  }
 
-    /*    ///////////////////////////////////////////////////
+  async getPostsByCorrectBlogId(
+    blogId: string,
+    queryParams: QueryParamsInputModel,
+  ) {
+    ///надо проверить существует ли такой blog
 
-        const sortDirectionValue = sortDirection === 'asc' ? 1 : -1;
+    const blog = await this.blogSqlRepository.findBlog(blogId);
 
-        const posts: PostDocument[] = await this.postModel
-          .find({})
+    if (!blog) return null;
 
-          .sort({ [sortBy]: sortDirectionValue })
+    const { sortBy, sortDirection, pageNumber, pageSize } = queryParams;
 
-          .skip((pageNumber - 1) * pageSize)
+    /*   НАДО УКАЗЫВАТЬ КОЛИЧЕСТВО ПРОПУЩЕНЫХ 
+   ЗАПИСЕЙ - чтобы получать следующие за ними
 
-          .limit(pageSize)
+    ЗНАЧЕНИЯ ПО УМОЛЧАНИЯ В ФАЙЛЕ
+    query-params-input-model.ts
 
-          .exec();
+   pageNumber по умолчанию 1, тобишь 
+   мне надо первую страницу на фронтенд отдать
+   , и это будут первые 10 записей из таблицы
 
-        const totalCount: number = await this.postModel.countDocuments({});
+ pageSize - размер  одной страницы, ПО УМОЛЧАНИЮ 10
+   ТОБИШЬ НАДО ПРОПУСКАТЬ НОЛЬ ЗАПИСЕЙ
+   (pageNumber - 1) * pageSize
+ */
 
-        const pagesCount: number = Math.ceil(totalCount / pageSize);
+    const amountSkip = (pageNumber - 1) * pageSize;
 
-        /!* Если в коллекции postModel не будет постов ,
-         тогда  метод find вернет пустой
-     массив ([]) в переменную posts.*!/
+    /*
+  ФИЛЬТР БЫЛ ПО ВВЕДЕННЫМ СИМВОЛАМ-НАПОМНЮ
+    -передается от фронта "Jo" для определенной колонки и
+    если  есть записи в базе данных  и у этих записей
+    у ДАННОЙ КОЛОКИ например существуют  "John",
+      "Johanna" и "Jonathan", тогда эти  три записи будут
+    выбраны и возвращен
 
-        if (posts.length === 0) {
-          return {
-            pagesCount,
-            page: pageNumber,
-            pageSize: pageSize,
-            totalCount,
-            items: [],
-          };
-        }
+    СЕЙЧАС ФИЛЬТР ПО  blogId
 
-        const arrayPosts: PostWithLikesInfo[] = await this.makeArrayPosts(
-          userId,
-          posts,
-        );
 
-        return {
-          pagesCount,
-          page: pageNumber,
-          pageSize: pageSize,
-          totalCount,
-          items: arrayPosts,
-        };
-      }
 
-      async makeArrayPosts(userId: string | null, posts: PostDocument[]) {
-        /!* из posts( массив постов)
-        - достану из каждого поста  _id(aйдишку поста)
-        буду иметь массив айдишек *!/
+    */
+    debugger;
+    const result = await this.dataSource.query(
+      `
+   SELECT p.*, b.name
+  FROM public.post p
+  LEFT JOIN public.blog b ON p."blogId" = b.id
+  WHERE p."blogId" ILIKE $1 
+  ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}  
+    LIMIT $2 OFFSET $3
+ 
+  `,
+      [`%${blogId}%`, pageSize, amountSkip],
+    );
+    debugger;
+    /*
+далее перед отправкой на фронтенд отмамплю записи из
+базы данных и добавлю поля - приведу к тому виду
+который ожидает  фронтенд
+*/
 
-        const arrayPostId: string[] = posts.map((e) => e._id.toString());
+    const arrayPosts: PostWithLikesInfo[] = result.map(
+      (post: CreatePostWithIdAndWithNameBlog) => {
+        return this.createViewModelPost(post);
+      },
+    );
 
-        /!*из коллекции LikeStatusForPost
-        достану все документы которые относятся
-        к постам полученым (по айдишка)  плюс они будут отсортированы
-        (первый самый новый)*!/
+    /* totalCountQuery - это запрос для получения общего
+ количества записей. Здесь используется функция
+  COUNT(*), которая подсчитывает все строки из
+   таблицы "post" с учетом объединения с таблицей "blog".*/
 
-        const allLikeStatusDocumentsForCurrentPosts: LikeStatusForPostDocument[] =
-          await this.likeStatusForPostRepository.findAllDocumentsByArrayPostId(
-            arrayPostId,
-          );
+    const totalCountQuery = await this.dataSource.query(
+      `
+  SELECT COUNT(*) AS value
+  FROM public.post p
+  LEFT JOIN public.blog b ON p."blogId" = b.id
+  WHERE p."blogId" ILIKE $1
+  `,
+      [`%${blogId}%`],
+    );
+    debugger;
+    const totalCount = Number(totalCountQuery[0].value);
 
-        /!* создаю массив постов с информацией о лайках
-        (он пойдет на фронтенд)
-        мапом прохожу и для каждого поста
-        делаю операции для получения обьекта   тип- PostWithLikesInfo *!/
+    /*
+pagesCount это число
+Вычисляется общее количество страниц путем деления общего
+количества документов на размер страницы (pageSize),
+ и округление вверх с помощью функции Math.ceil.*/
 
-        /!* ЗДЕСЬ return  возвращает наружу  результат
-         работы метода map*!/
-        return posts.map((post: PostDocument) => {
-          /!* отдельный метод (createAlonePostWithLikeInfo) который создае
-           один пост со всеми вложеностями
-           -с информацией о лайках*!/
+    const pagesCount: number = Math.ceil(totalCount / pageSize);
 
-          const postWithLikeInfo = this.createAlonePostWithLikeInfo(
-            userId,
-            post,
-            allLikeStatusDocumentsForCurrentPosts,
-          );
-
-          /!*один обьект (postWithLikeInfo) методе map  создан и ретурном
-           помещен в  результатирующий массив*!/
-          return postWithLikeInfo;
-        });
-      }
-
-      createAlonePostWithLikeInfo(
-        userId: string | null,
-        /!* userId чтоб определить статус того
-       пользователя который данный запрос делает *!/
-
-        post: PostDocument,
-        allLikeStatusDocumentsForCurrentPosts: LikeStatusForPostDocument[],
-      ) {
-        /!*для одного поста нахожу все документы
-        из массива ЛАЙКОВ *!/
-
-        const allLikeStatusDocumentsForCurrentPost: LikeStatusForPostDocument[] =
-          allLikeStatusDocumentsForCurrentPosts.filter(
-            (e) => e.postId === post._id.toString(),
-          );
-
-        /!* получаю  массив документов с Like*!/
-
-        const like: LikeStatusForPostDocument[] =
-          allLikeStatusDocumentsForCurrentPost.filter(
-            (e) => e.likeStatus === LikeStatus.LIKE,
-          );
-
-        /!* получаю  массив документов с DisLike*!/
-
-        const dislike: LikeStatusForPostDocument[] =
-          allLikeStatusDocumentsForCurrentPost.filter(
-            (e) => e.likeStatus === LikeStatus.DISLIKE,
-          );
-
-        /!* получаю из массива со статусом Like
-        три документа  новейших по дате
-        --сортировку я произвел когда все документы
-         ЛАЙКСТАТУСДЛЯПОСТОВ из   базыданных доставал *!/
-
-        const threeDocumentWithLike: LikeStatusForPostDocument[] = like.slice(0, 3);
-
-        /!*  надо узнать какой статус поставил пользователь данному посту,
-          тот пользователь который данный запрос делает - его айдишка
-           имеется *!/
-
-        let likeStatusCurrentPostCurrentUser: LikeStatus;
-
-        const result = allLikeStatusDocumentsForCurrentPost.find(
-          (e) => e.userId === userId,
-        );
-
-        if (!result) {
-          likeStatusCurrentPostCurrentUser = LikeStatus.NONE;
-        } else {
-          likeStatusCurrentPostCurrentUser = result.likeStatus;
-        }
-
-        /!*
-          ---post: PostDocument- нахожусь внутри метода map
-          и post - это текущий документ
-          ----like/dislike: LikeStatusForPostDocument[] массивы -
-          длинны их использую
-          ---likeStatusCurrentPostCurrentUser: LikeStatus - статус
-          пользователя который текущий запрос делает
-          ---threeDocumentWithLike: LikeStatusForPostDocument[]
-          три документа - это самые последние(новые) которые
-          ЛАЙК этому посту поставили
-         *!/
-
-        const threeLatestLike: NewestLikes[] = threeDocumentWithLike.map(
-          (el: LikeStatusForPostDocument) => {
-            return {
-              userId: el.userId,
-              addedAt: el.addedAt,
-              login: el.login,
-            };
-          },
-        );
-
-        const extendedLikesInfo: ExtendedLikesInfo = {
-          likesCount: like.length,
-          dislikesCount: dislike.length,
-          myStatus: likeStatusCurrentPostCurrentUser,
-          newestLikes: threeLatestLike,
-        };
-
-        return {
-          id: post._id.toString(),
-          title: post.title,
-          shortDescription: post.shortDescription,
-          content: post.content,
-          blogId: post.blogId,
-          blogName: post.blogName,
-          createdAt: post.createdAt,
-          extendedLikesInfo,
-        };
-      }
-
-      async getPostsByCorrectBlogId(
-        userId: string | null,
-        blogId: string,
-        queryParams: QueryParamsInputModel,
-      ) {
-        ///надо проверить существует ли такой blog
-
-        const blog = await this.blogRepository.findBlog(blogId);
-
-        if (!blog) return null;
-
-        const { sortBy, sortDirection, pageNumber, pageSize } = queryParams;
-
-        const sortDirectionValue = sortDirection === 'asc' ? 1 : -1;
-
-        const filter = { blogId };
-
-        const posts: PostDocument[] = await this.postModel
-          .find(filter)
-
-          .sort({ [sortBy]: sortDirectionValue })
-
-          .skip((pageNumber - 1) * pageSize)
-
-          .limit(pageSize)
-
-          .exec();
-
-        const totalCount: number = await this.postModel.countDocuments(filter);
-
-        const pagesCount: number = Math.ceil(totalCount / pageSize);
-
-        /!* Если в коллекции postModel не будет документов,
-           c указаным  blogId , то метод find вернет пустой
-         массив ([]) в переменную posts.*!/
-
-        if (posts.length === 0) {
-          return {
-            pagesCount,
-            page: pageNumber,
-            pageSize: pageSize,
-            totalCount,
-            items: [],
-          };
-        }
-
-        const arrayPosts: PostWithLikesInfo[] = await this.makeArrayPosts(
-          userId,
-          posts,
-        );
-
-        return {
-          pagesCount,
-          page: pageNumber,
-          pageSize: pageSize,
-          totalCount,
-          items: arrayPosts,
-        };
-      }*/
+    return {
+      pagesCount,
+      page: pageNumber,
+      pageSize: pageSize,
+      totalCount,
+      items: arrayPosts,
+    };
   }
 
   async getPostById(postId: string) {
@@ -432,95 +294,5 @@ pagesCount это число
         newestLikes: [],
       },
     };
-
-    //////////////////////////////////////////////////////////
-
-    /*  const post: PostDocument | null = await this.postModel.findById(postId);
-
-      if (!post) return null;
-
-      /!* найду все документы LikeStatus для текущего поста
-       * если ничего не найдет то вернет пустой массив*!/
-
-      const allDocumentsLikeStatus: LikeStatusForPostDocument[] =
-        await this.likeStatusForPostRepository.findAllDocumentByPostId(postId);
-
-      const postWithLikeInfo = this.createAlonePostWithLikeInfo(
-        userId,
-        post,
-        allDocumentsLikeStatus,
-      );
-
-      return postWithLikeInfo;*/
-  }
-
-  /*  ЭТОТ МЕТОД ДЛЯ СОЗДАНИЯ ВИДА !!! НОВОГО ПОСТА !!!
-   * отличатся будет потомучто у нового поста еще не будет
-   * лайков и поэтому значения лайков будут нулевые
-   * вобще нет запросов за лайками в базу данных
-   * */
-  /*  createViewModelNewPost(post: PostDocument): PostWithLikesInfo {
-      return {
-        id: post._id.toString(),
-        title: post.title,
-        shortDescription: post.shortDescription,
-        content: post.content,
-        blogId: post.blogId,
-        blogName: post.blogName,
-        createdAt: post.createdAt,
-        extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatus.NONE,
-          newestLikes: [
-            {
-              addedAt: '',
-              userId: '',
-              login: '',
-            },
-          ],
-        },
-      };
-    }*/
-}
-
-/*
-
-async getPostById(postId: string) {
-  const post: PostDocument | null = await this.postModel.findById(postId);
-
-  if (post) {
-    return this.createViewModelNewPost(post);
-  } else {
-    return null;
   }
 }
-
-/!*  ЭТОТ МЕТОД ДЛЯ СОЗДАНИЯ ВИДА !!! НОВОГО ПОСТА !!!
- * отличатся будет потомучто у нового поста еще не будет
- * лайков и поэтому значения лайков будут нулевые
- * вобще нет запросов за лайками в базу данных
- * *!/
-createViewModelNewPost(post: PostDocument): PostWithLikesInfo {
-  return {
-    id: post._id.toString(),
-    title: post.title,
-    shortDescription: post.shortDescription,
-    content: post.content,
-    blogId: post.blogId,
-    blogName: post.blogName,
-    createdAt: post.createdAt,
-    extendedLikesInfo: {
-      likesCount: 0,
-      dislikesCount: 0,
-      myStatus: LikeStatus.NONE,
-      newestLikes: [
-        {
-          addedAt: '',
-          userId: '',
-          login: '',
-        },
-      ],
-    },
-  };
-}*/
