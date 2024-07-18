@@ -225,4 +225,25 @@ export class SaBlogController {
       );
     }
   }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':blogId/posts/:postId')
+  async deletePost(
+    @Param('postId') postId: string,
+    @Param('blogId') blogId: string,
+  ) {
+    const isDeletePost: boolean = await this.postService.deletePost(
+      blogId,
+      postId,
+    );
+
+    if (isDeletePost) {
+      return;
+    } else {
+      throw new NotFoundException(
+        'post not update:andpoint-put ,url /posts/id',
+      );
+    }
+  }
 }

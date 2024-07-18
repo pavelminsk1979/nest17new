@@ -5,7 +5,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PostRepository } from '../repositories/post-repository';
 import { CreatePostInputModel } from '../api/pipes/create-post-input-model';
-import { UpdatePostInputModel } from '../api/pipes/update-post-input-model';
 import { LikeStatus } from '../../../common/types';
 import { LikeStatusForPostRepository } from '../../like-status-for-post/repositories/like-status-for-post-repository';
 import {
@@ -77,6 +76,19 @@ export class PostService {
     if (blogId !== post.blogId) return false;
 
     return this.postSqlRepository.updatePost(postId, updatePostInputModel);
+  }
+
+  async deletePost(blogId: string, postId: string) {
+    /*  проверить-- есть ли пост с данной айдишкой и
+ чтоб он принадлежал блогу с данной айдишкой*/
+
+    const post = await this.postSqlRepository.getPost(postId);
+
+    if (!post) return false;
+
+    if (blogId !== post.blogId) return false;
+
+    return this.postSqlRepository.deletePost(postId);
   }
 
   async deletePostById(postId: string) {

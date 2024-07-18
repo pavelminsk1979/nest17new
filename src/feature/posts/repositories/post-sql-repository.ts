@@ -78,4 +78,26 @@ WHERE id=$4;
 
     return result[0];
   }
+
+  async deletePost(postId: string) {
+    const result = await this.dataSource.query(
+      `
+    
+    DELETE FROM public.post
+WHERE id=$1;
+    
+    `,
+      [postId],
+    );
+
+    /*    в result будет всегда массив с двумя элементами
+и всегда первым
+    элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+    или НОЛЬ(если ничего не изменилось) или число-сколько
+    строк изменилось(в данном случае еденица будет
+вторым элементом масива )*/
+
+    if (result[1] === 0) return false;
+    return true;
+  }
 }

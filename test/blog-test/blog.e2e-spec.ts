@@ -208,6 +208,16 @@ describe('tests for andpoint blogs', () => {
     //console.log(res.body);
   });
 
+  it('delete  post', async () => {
+    const res = await request(app.getHttpServer())
+      .delete(`/sa/blogs/${idBlog}/posts/${idPost}`)
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+
+      .expect(204);
+
+    //console.log(res.body);
+  });
+
   it('get all  posts', async () => {
     const res = await request(app.getHttpServer())
       .get('/posts')
@@ -225,7 +235,7 @@ describe('tests for andpoint blogs', () => {
 
       .expect(200);
 
-    console.log(res.body);
+    //console.log(res.body);
   });
 
   it('get all  posts for correct blog', async () => {
@@ -235,7 +245,7 @@ describe('tests for andpoint blogs', () => {
 
       .expect(200);
 
-    console.log(res.body);
+    //console.log(res.body);
   });
 
   //////////////////////////////////////////////////////////
