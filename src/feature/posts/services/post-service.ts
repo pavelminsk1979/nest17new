@@ -16,6 +16,7 @@ import { UsersRepository } from '../../users/repositories/user-repository';
 import { BlogSqlRepository } from '../../blogs/repositories/blog-sql-repository';
 import { CreatePost } from '../api/types/dto';
 import { PostSqlRepository } from '../repositories/post-sql-repository';
+import { UpdatePostForCorrectBlogInputModel } from '../api/pipes/update-post-for-correct-blog-input-model';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -62,10 +63,20 @@ export class PostService {
   }
 
   async updatePost(
+    blogId: string,
     postId: string,
-    updatePostInputModel: UpdatePostInputModel,
+    updatePostInputModel: UpdatePostForCorrectBlogInputModel,
   ): Promise<boolean> {
-    return this.postRepository.updatePost(postId, updatePostInputModel);
+    /*  проверить-- есть ли пост с данной айдишкой и
+    чтоб он принадлежал блогу с данной айдишкой*/
+
+    const post = await this.postSqlRepository.getPost(postId);
+
+    if (!post) return false;
+
+    if (blogId !== post.blogId) return false;
+
+    return this.postSqlRepository.updatePost(postId, updatePostInputModel);
   }
 
   async deletePostById(postId: string) {

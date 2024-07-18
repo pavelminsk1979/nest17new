@@ -18,7 +18,6 @@ import { PostQueryRepository } from '../repositories/post-query-repository';
 import { PostWithLikesInfo, ViewModelWithArrayPosts } from './types/views';
 import { CommentQueryRepository } from '../../comments/reposetories/comment-query-repository';
 import { ViewArrayComments } from '../../comments/types/views';
-import { CreatePostInputModel } from './pipes/create-post-input-model';
 import { UpdatePostInputModel } from './pipes/update-post-input-model';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { CreateCommentForPostInputModel } from './pipes/create-coment-for-post-input-model';
@@ -41,34 +40,34 @@ export class PostsController {
     protected postQuerySqlRepository: PostQuerySqlRepository,
   ) {}
 
-  @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
-  /*  @HttpCode(HttpStatus.CREATED) по умолчанию 201
-    поэтому необязательно это прописывать */
-  @Post()
-  async createPost(
-    @Body() createPostInputModel: CreatePostInputModel,
-  ): Promise<PostWithLikesInfo | null> {
-    /* создать новый пост  и вернуть данные этого поста и также
-    внутри структуру данных(снулевыми значениями)  о лайках  к этому посту*/
-
-    const postId: string | null =
-      await this.postService.createPost(createPostInputModel);
-
-    if (!postId) {
-      throw new NotFoundException(
-        'Cannot create post because blog does not exist-:method-post,url-posts',
-      );
-    }
-
-    const post: PostWithLikesInfo | null =
-      await this.postQuerySqlRepository.getPostById(postId);
-
-    if (post) {
-      return post;
-    } else {
-      throw new NotFoundException('Cannot create post- :method-post,url-posts');
-    }
-  }
+  /*  @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
+    /!*  @HttpCode(HttpStatus.CREATED) по умолчанию 201
+      поэтому необязательно это прописывать *!/
+    @Post()
+    async createPost(
+      @Body() createPostInputModel: CreatePostInputModel,
+    ): Promise<PostWithLikesInfo | null> {
+      /!* создать новый пост  и вернуть данные этого поста и также
+      внутри структуру данных(снулевыми значениями)  о лайках  к этому посту*!/
+  
+      const postId: string | null =
+        await this.postService.createPost(createPostInputModel);
+  
+      if (!postId) {
+        throw new NotFoundException(
+          'Cannot create post because blog does not exist-:method-post,url-posts',
+        );
+      }
+  
+      const post: PostWithLikesInfo | null =
+        await this.postQuerySqlRepository.getPostById(postId);
+  
+      if (post) {
+        return post;
+      } else {
+        throw new NotFoundException('Cannot create post- :method-post,url-posts');
+      }
+    }*/
 
   @UseGuards(DataUserExtractorFromTokenGuard)
   @Get()
@@ -112,26 +111,26 @@ export class PostsController {
     }
   }
 
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Put(':id')
-  async updateBlog(
-    @Param('id') postId: string,
-    @Body() updatePostInputModel: UpdatePostInputModel,
-  ) {
-    const isUpdatePost: boolean = await this.postService.updatePost(
-      postId,
-      updatePostInputModel,
-    );
-
-    if (isUpdatePost) {
-      return;
-    } else {
-      throw new NotFoundException(
-        'post not update:andpoint-put ,url /posts/id',
+  /*  @UseGuards(AuthGuard)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @Put(':id')
+    async updateBlog(
+      @Param('id') postId: string,
+      @Body() updatePostInputModel: UpdatePostInputModel,
+    ) {
+      const isUpdatePost: boolean = await this.postService.updatePost(
+        postId,
+        updatePostInputModel,
       );
-    }
-  }
+  
+      if (isUpdatePost) {
+        return;
+      } else {
+        throw new NotFoundException(
+          'post not update:andpoint-put ,url /posts/id',
+        );
+      }
+    }*/
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)

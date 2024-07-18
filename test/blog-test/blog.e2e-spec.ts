@@ -12,6 +12,8 @@ describe('tests for andpoint blogs', () => {
 
   let idBlogForUpdate;
 
+  let idPost;
+
   const loginPasswordBasic64 = 'YWRtaW46cXdlcnR5';
 
   beforeAll(async () => {
@@ -121,22 +123,23 @@ describe('tests for andpoint blogs', () => {
 
   it('create post', async () => {
     const res = await request(app.getHttpServer())
-      .post('/posts')
+      .post(`/sa/blogs/${idBlog}/posts`)
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         title: 'titlePost1',
         shortDescription: 'shortDescriptionPost1',
         content: 'contentPost1',
-        blogId: idBlog,
       })
       .expect(201);
 
     //console.log(res.body);
+
+    idPost = res.body.id;
   });
 
   it('create post', async () => {
     const res = await request(app.getHttpServer())
-      .post('/posts')
+      .post(`/sa/blogs/${idBlog}/posts`)
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         title: 'titlePost12',
@@ -151,13 +154,12 @@ describe('tests for andpoint blogs', () => {
 
   it('create post', async () => {
     const res = await request(app.getHttpServer())
-      .post('/posts')
+      .post(`/sa/blogs/${idBlog1}/posts`)
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         title: 'titlePost222',
         shortDescription: 'shortDescriptionPost222',
         content: 'contentPost222',
-        blogId: idBlog1,
       })
       .expect(201);
 
@@ -166,13 +168,12 @@ describe('tests for andpoint blogs', () => {
 
   it('create post', async () => {
     const res = await request(app.getHttpServer())
-      .post('/posts')
+      .post(`/sa/blogs/${idBlog1}/posts`)
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         title: 'titlePost223',
         shortDescription: 'shortDescriptionPost223',
         content: 'contentPost223',
-        blogId: idBlog1,
       })
       .expect(201);
 
@@ -181,15 +182,28 @@ describe('tests for andpoint blogs', () => {
 
   it('create post', async () => {
     const res = await request(app.getHttpServer())
-      .post('/posts')
+      .post(`/sa/blogs/${idBlog1}/posts`)
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
       .send({
         title: 'titlePost224',
         shortDescription: 'shortDescriptionPost224',
         content: 'contentPost224',
-        blogId: idBlog1,
       })
       .expect(201);
+
+    //console.log(res.body);
+  });
+
+  it('update  post', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/sa/blogs/${idBlog}/posts/${idPost}`)
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+      .send({
+        title: 'titlePUpdate',
+        shortDescription: 'shortDescripUpdate',
+        content: 'contentPUpdate',
+      })
+      .expect(204);
 
     //console.log(res.body);
   });
@@ -207,6 +221,16 @@ describe('tests for andpoint blogs', () => {
   it('get all  posts for correct blog', async () => {
     const res = await request(app.getHttpServer())
       .get(`/blogs/${idBlog1}/posts`)
+      .set('Authorization', `Basic ${loginPasswordBasic64}`)
+
+      .expect(200);
+
+    console.log(res.body);
+  });
+
+  it('get all  posts for correct blog', async () => {
+    const res = await request(app.getHttpServer())
+      .get(`/sa/blogs/${idBlog}/posts`)
       .set('Authorization', `Basic ${loginPasswordBasic64}`)
 
       .expect(200);

@@ -1,26 +1,16 @@
 import {
-  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
-  Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PostQueryRepository } from '../../posts/repositories/post-query-repository';
-import {
-  PostWithLikesInfo,
-  ViewModelWithArrayPosts,
-} from '../../posts/api/types/views';
-import { CreatePostForBlogInputModel } from './pipes/create-post-for-blog-input-model';
+import { ViewModelWithArrayPosts } from '../../posts/api/types/views';
 import { CommandBus } from '@nestjs/cqrs';
-import { CreatePostForBlogCommand } from '../services/create-post-for-blog-service';
-import { AuthGuard } from '../../../common/guard/auth-guard';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
-import { Request } from 'express';
 import { BlogQuerySqlRepository } from '../repositories/blog-query-sql-repository';
 import { PostQuerySqlRepository } from '../../posts/repositories/post-query-sql-repository';
 
@@ -124,45 +114,45 @@ export class BlogController {
     }
   }*/
 
-  @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
-  @Post(':blogId/posts')
-  async createPostFortBlog(
-    @Param('blogId') blogId: string,
-    @Body() createPostForBlogInputModel: CreatePostForBlogInputModel,
-    @Req() request: Request,
-  ): Promise<PostWithLikesInfo | null> {
-    /* чтобы переиспользовать в этом обработчике метод
- getPostById  ему нужна (userId)- она будет 
- в данном случае null но главное что удовлетворяю
- метод значением-userId*/
-
-    const userId: string | null = request['userId'];
-
-    /* создать новый пост ДЛЯ КОНКРЕТНОГО БЛОГА и вернут
-     данные этого поста и также структуру 
-    данных(снулевыми значениями)  о лайках к этому посту*/
-
-    const postId: string | null = await this.commandBus.execute(
-      new CreatePostForBlogCommand(blogId, createPostForBlogInputModel),
-    );
-
-    if (!postId) {
-      throw new NotFoundException(
-        'Not found blog- ' + ':method-post,url -blogs/:blogId /post',
+  /*  @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
+    @Post(':blogId/posts')
+    async createPostFortBlog(
+      @Param('blogId') blogId: string,
+      @Body() createPostForBlogInputModel: CreatePostForBlogInputModel,
+      @Req() request: Request,
+    ): Promise<PostWithLikesInfo | null> {
+      /!* чтобы переиспользовать в этом обработчике метод
+   getPostById  ему нужна (userId)- она будет 
+   в данном случае null но главное что удовлетворяю
+   метод значением-userId*!/
+  
+      const userId: string | null = request['userId'];
+  
+      /!* создать новый пост ДЛЯ КОНКРЕТНОГО БЛОГА и вернут
+       данные этого поста и также структуру 
+      данных(снулевыми значениями)  о лайках к этому посту*!/
+  
+      const postId: string | null = await this.commandBus.execute(
+        new CreatePostForBlogCommand(blogId, createPostForBlogInputModel),
       );
-    }
-
-    const post: PostWithLikesInfo | null =
-      await this.postQueryRepository.getPostById(userId, postId);
-
-    if (post) {
-      return post;
-    } else {
-      throw new NotFoundException(
-        'Not create post- ' + ':method-post,url -blogs/:blogId /post',
-      );
-    }
-  }
+  
+      if (!postId) {
+        throw new NotFoundException(
+          'Not found blog- ' + ':method-post,url -blogs/:blogId /post',
+        );
+      }
+  
+      const post: PostWithLikesInfo | null =
+        await this.postQueryRepository.getPostById(userId, postId);
+  
+      if (post) {
+        return post;
+      } else {
+        throw new NotFoundException(
+          'Not create post- ' + ':method-post,url -blogs/:blogId /post',
+        );
+      }
+    }*/
 
   @UseGuards(DataUserExtractorFromTokenGuard)
   @Get(':blogId/posts')

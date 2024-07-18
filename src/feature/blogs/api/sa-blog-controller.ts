@@ -10,11 +10,9 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewBlog } from './types/views';
-import { PostQueryRepository } from '../../posts/repositories/post-query-repository';
 import {
   PostWithLikesInfo,
   ViewModelWithArrayPosts,
@@ -29,9 +27,10 @@ import { CreateBlogCommand } from '../services/create-blog-service';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
-import { Request } from 'express';
 import { BlogQuerySqlRepository } from '../repositories/blog-query-sql-repository';
 import { PostQuerySqlRepository } from '../../posts/repositories/post-query-sql-repository';
+import { UpdatePostForCorrectBlogInputModel } from '../../posts/api/pipes/update-post-for-correct-blog-input-model';
+import { PostService } from '../../posts/services/post-service';
 
 @Controller('sa/blogs')
 export class SaBlogController {
@@ -40,9 +39,9 @@ export class SaBlogController {
      * и в каждой отдельный метод
      * конспект 1501*/
     protected commandBus: CommandBus,
-    protected postQueryRepository: PostQueryRepository,
     protected blogQuerySqlRepository: BlogQuerySqlRepository,
     protected postQuerySqlRepository: PostQuerySqlRepository,
+    protected postService: PostService,
   ) {}
 
   /*Nest.js автоматически возвращает следующие
@@ -138,14 +137,14 @@ export class SaBlogController {
   async createPostFortBlog(
     @Param('blogId') blogId: string,
     @Body() createPostForBlogInputModel: CreatePostForBlogInputModel,
-    @Req() request: Request,
+    // @Req() request: Request,
   ): Promise<PostWithLikesInfo | null> {
     /* чтобы переиспользовать в этом обработчике метод
  getPostById  ему нужна (userId)- она будет 
  в данном случае null но главное что удовлетворяю
  метод значением-userId*/
 
-    const userId: string | null = request['userId'];
+    // const userId: string | null = request['userId'];
 
     /* создать новый пост ДЛЯ КОНКРЕТНОГО БЛОГА и вернут
      данные этого поста и также структуру 
@@ -162,7 +161,7 @@ export class SaBlogController {
     }
 
     const post: PostWithLikesInfo | null =
-      await this.postQueryRepository.getPostById(userId, postId);
+      await this.postQuerySqlRepository.getPostById(postId);
 
     if (post) {
       return post;
@@ -200,6 +199,29 @@ export class SaBlogController {
     } else {
       throw new NotFoundException(
         'blog  is not exists  ' + ':method-get,url -blogs/:blogId /posts',
+      );
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Put(':blogId/posts/:postId')
+  async updatePost(
+    @Param('postId') postId: string,
+    @Param('blogId') blogId: string,
+    @Body() updatePostInputModel: UpdatePostForCorrectBlogInputModel,
+  ) {
+    const isUpdatePost: boolean = await this.postService.updatePost(
+      blogId,
+      postId,
+      updatePostInputModel,
+    );
+
+    if (isUpdatePost) {
+      return;
+    } else {
+      throw new NotFoundException(
+        'post not update:andpoint-put ,url /posts/id',
       );
     }
   }
