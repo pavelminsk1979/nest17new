@@ -202,20 +202,20 @@ pagesCount это число
 
 
     */
-    debugger;
+
     const result = await this.dataSource.query(
       `
-   SELECT p.*, b.name
-  FROM public.post p
-  LEFT JOIN public.blog b ON p."blogId" = b.id
-  WHERE p."blogId" ILIKE $1 
-  ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}  
-    LIMIT $2 OFFSET $3
- 
-  `,
-      [`%${blogId}%`, pageSize, amountSkip],
+       SELECT p.*, b.name
+      FROM public.post p
+      LEFT JOIN public.blog b ON p."blogId" = b.id
+      WHERE p."blogId" = $1 
+      ORDER BY p."${sortBy}" COLLATE "C" ${sortDirection}  
+        LIMIT $2 OFFSET $3
+     
+      `,
+      [blogId, pageSize, amountSkip],
     );
-    debugger;
+
     /*
 далее перед отправкой на фронтенд отмамплю записи из
 базы данных и добавлю поля - приведу к тому виду
@@ -238,11 +238,11 @@ pagesCount это число
   SELECT COUNT(*) AS value
   FROM public.post p
   LEFT JOIN public.blog b ON p."blogId" = b.id
-  WHERE p."blogId" ILIKE $1
+  WHERE p."blogId"  = $1
   `,
-      [`%${blogId}%`],
+      [blogId],
     );
-    debugger;
+
     const totalCount = Number(totalCountQuery[0].value);
 
     /*
