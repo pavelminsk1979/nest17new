@@ -30,10 +30,9 @@ export class CommentQuerySqlRepository {
 
     const result = await this.dataSource.query(
       `
-    
     SELECT *
 FROM public.comment c
-WHERE c.id = 1$
+WHERE c.id = $1
     
     `,
       [commentId],
@@ -115,6 +114,7 @@ WHERE c.id = 1$
     statusCurrentUser: LikeStatus,
     likecommentsForCorrectComent: LikeStatusForCommentCreateWithId[],
   ) {
+    debugger;
     /* получаю  массив документов с Like*/
 
     const like: LikeStatusForCommentCreateWithId[] =

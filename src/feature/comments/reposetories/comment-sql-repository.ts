@@ -16,7 +16,7 @@ export class CommentSqlRepository {
     
     INSERT INTO public.comment(
  content, "postId", "createdAt", "userId", "userLogin")
-VALUES ( $1,$2,$3,$4,$5);
+VALUES ( $1,$2,$3,$4,$5)
   RETURNING id;  
     `,
       [

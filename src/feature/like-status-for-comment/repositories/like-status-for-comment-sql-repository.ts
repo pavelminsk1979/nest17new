@@ -7,15 +7,12 @@ export class LikeStatusForCommentSqlRepository {
   constructor(@InjectDataSource() protected dataSource: DataSource) {}
 
   async findLikeCommentForCorrectUser(userId: string, commentId: string) {
-    /* Если документ не будет найден, 
-    метод findOne() вернет null.*/
-
     const result = await this.dataSource.query(
       `
     
      SELECT *
     FROM public.likecomment lcom
-    where lcom."userId"=1$ AND  lcom."commentId"=2$
+    where lcom."userId"=$1 AND  lcom."commentId"=$2
     
     `,
       [userId, commentId],
@@ -34,7 +31,7 @@ export class LikeStatusForCommentSqlRepository {
     
      SELECT *
     FROM public.likecomment lcom
-    where lcom."commentId"=1$
+    where lcom."commentId"=$1
     
     `,
       [commentId],

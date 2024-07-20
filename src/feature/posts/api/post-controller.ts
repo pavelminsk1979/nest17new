@@ -223,6 +223,7 @@ export class PostsController {
      который только что создал
 
      ---userId  чтоб вернуть статус установленый этим юзером*/
+
     const comment = await this.commentQuerySqlRepository.getCommentById(
       userId,
       commentId,

@@ -11,6 +11,12 @@ export class TestController {
   @Delete('all-data')
   async deleteAllData() {
     await this.dataSource.query(`
+    DELETE FROM public."likecomment"
+    `);
+    await this.dataSource.query(`
+    DELETE FROM public."comment"
+    `);
+    await this.dataSource.query(`
     DELETE FROM public."securityDevice"
     `);
     await this.dataSource.query(`
