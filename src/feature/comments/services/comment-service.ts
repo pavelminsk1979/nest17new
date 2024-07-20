@@ -11,6 +11,10 @@ import {
   LikeStatusForCommentDocument,
 } from '../../like-status-for-comment/domain/domain-like-status-for-comment';
 import { LikeStatusForCommentRepository } from '../../like-status-for-comment/repositories/like-status-for-comment-repository';
+import { PostSqlRepository } from '../../posts/repositories/post-sql-repository';
+import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
+import { CreateComment } from '../api/types/dto';
+import { CommentSqlRepository } from '../reposetories/comment-sql-repository';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -29,39 +33,42 @@ export class CommentService {
     protected likeStatusForCommentRepository: LikeStatusForCommentRepository,
     @InjectModel(LikeStatusForComment.name)
     private likeStatusModelForComment: Model<LikeStatusForCommentDocument>,
+    protected postSqlRepository: PostSqlRepository,
+    protected usersSqlRepository: UsersSqlRepository,
+    protected commentSqlRepository: CommentSqlRepository,
   ) {}
 
   async createComment(userId: string, postId: string, content: string) {
     /*надо проверить существует ли такой
     документ-post в базе */
 
-    const post = await this.postRepository.getPostById(postId);
+    const post = await this.postSqlRepository.getPost(postId);
 
     if (!post) return null;
 
     /* надо достать документ user по userId
     и из него взять userLogin*/
 
-    const user = await this.usersRepository.getUserById(userId);
+    const user = await this.usersSqlRepository.getUserById(userId);
 
     if (!user) return null;
 
     const userLogin = user.login;
 
-    const newComment: CommentDocument = new this.commentModel({
+    const newComment: CreateComment = {
       content,
       createdAt: new Date().toISOString(),
       postId,
-      commentatorInfo: {
-        userId,
-        userLogin,
-      },
-    });
+      userId,
+      userLogin,
+    };
 
-    const comment: CommentDocument =
-      await this.commentRepository.save(newComment);
+    const commentId: string | null =
+      await this.commentSqlRepository.createComment(newComment);
 
-    return comment._id.toString();
+    if (!commentId) return null;
+
+    return commentId;
   }
 
   async updateComment(userId: string, commentId: string, content: string) {

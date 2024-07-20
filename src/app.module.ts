@@ -75,6 +75,9 @@ import { BlogQuerySqlRepository } from './feature/blogs/repositories/blog-query-
 import { PostSqlRepository } from './feature/posts/repositories/post-sql-repository';
 import { PostQuerySqlRepository } from './feature/posts/repositories/post-query-sql-repository';
 import { SaBlogController } from './feature/blogs/api/sa-blog-controller';
+import { CommentSqlRepository } from './feature/comments/reposetories/comment-sql-repository';
+import { CommentQuerySqlRepository } from './feature/comments/reposetories/comment-query-sql-repository';
+import { LikeStatusForCommentSqlRepository } from './feature/like-status-for-comment/repositories/like-status-for-comment-sql-repository';
 
 dotenv.config();
 
@@ -272,6 +275,9 @@ dotenv.config();
     BlogQuerySqlRepository,
     PostSqlRepository,
     PostQuerySqlRepository,
+    CommentSqlRepository,
+    CommentQuerySqlRepository,
+    LikeStatusForCommentSqlRepository,
   ],
 })
 /*export class AppModule {} в данном контексте

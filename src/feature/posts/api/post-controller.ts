@@ -28,6 +28,7 @@ import { SetLikeStatusForPostInputModel } from './pipes/set-like-status-input-mo
 import { LikeStatusForPostDocument } from '../../like-status-for-post/domain/domain-like-status-for-post';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
 import { PostQuerySqlRepository } from '../repositories/post-query-sql-repository';
+import { CommentQuerySqlRepository } from '../../comments/reposetories/comment-query-sql-repository';
 
 @Controller('posts')
 export class PostsController {
@@ -37,6 +38,7 @@ export class PostsController {
     protected commentQueryRepository: CommentQueryRepository,
     protected commentService: CommentService,
     protected postQuerySqlRepository: PostQuerySqlRepository,
+    protected commentQuerySqlRepository: CommentQuerySqlRepository,
   ) {}
 
   /*  @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
@@ -217,7 +219,11 @@ export class PostsController {
       );
     }
 
-    const comment = await this.commentQueryRepository.getCommentById(
+    /* Один коментарий надо получить и вернуть---тот
+     который только что создал
+
+     ---userId  чтоб вернуть статус установленый этим юзером*/
+    const comment = await this.commentQuerySqlRepository.getCommentById(
       userId,
       commentId,
     );
