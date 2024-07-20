@@ -75,6 +75,7 @@ export class SaBlogController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async getBlogs(@Query() queryParamsBlogInputModel: QueryParamsInputModel) {
     const blogs = await this.blogQuerySqlRepository.getBlogs(
@@ -172,7 +173,7 @@ export class SaBlogController {
     }
   }
 
-  @UseGuards(DataUserExtractorFromTokenGuard)
+  @UseGuards(AuthGuard, DataUserExtractorFromTokenGuard)
   @Get(':blogId/posts')
   async getPostsForBlog(
     @Param('blogId') blogId: string,

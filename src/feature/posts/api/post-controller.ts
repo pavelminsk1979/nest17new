@@ -18,7 +18,6 @@ import { PostQueryRepository } from '../repositories/post-query-repository';
 import { PostWithLikesInfo, ViewModelWithArrayPosts } from './types/views';
 import { CommentQueryRepository } from '../../comments/reposetories/comment-query-repository';
 import { ViewArrayComments } from '../../comments/types/views';
-import { UpdatePostInputModel } from './pipes/update-post-input-model';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { CreateCommentForPostInputModel } from './pipes/create-coment-for-post-input-model';
 import { AuthTokenGuard } from '../../../common/guard/auth-token-guard';
@@ -75,6 +74,9 @@ export class PostsController {
     @Query() queryParamsPostInputModel: QueryParamsInputModel,
     //@Req() request: Request,
   ): Promise<ViewModelWithArrayPosts> {
+    /*  console.log('----------');
+      console.log('getPosts');
+      console.log('----------');*/
     /*Айдишка пользователя нужна для-- когда
  отдадим ответ в нем будет информация
  о том какой статус учтановил данный пользователь
@@ -84,7 +86,9 @@ export class PostsController {
 
     const posts: ViewModelWithArrayPosts =
       await this.postQuerySqlRepository.getPosts(queryParamsPostInputModel);
-
+    /*  console.log('+++++++++');
+      console.log(posts);
+      console.log('++++++++++++');*/
     return posts;
   }
 
@@ -92,17 +96,17 @@ export class PostsController {
   @Get(':id')
   async getPostById(
     @Param('id') postId: string,
-    @Req() request: Request,
+    //@Req() request: Request,
   ): Promise<PostWithLikesInfo | null> {
     /*Айдишка пользователя нужна для-- когда
 отдадим ответ в нем дудет информация
 о том какой статус учтановил данный пользователь
 который этот запрос делает */
 
-    const userId: string | null = request['userId'];
+    //const userId: string | null = request['userId'];
 
     const post: PostWithLikesInfo | null =
-      await this.postQueryRepository.getPostById(userId, postId);
+      await this.postQuerySqlRepository.getPostById(postId);
 
     if (post) {
       return post;
