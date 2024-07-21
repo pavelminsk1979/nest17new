@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Comment, CommentDocument } from '../domaims/domain-comment';
-import { CommentWithLikeInfo, LikesInfo } from '../types/views';
+import { CommentWithLikeInfo } from '../types/views';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
 import { LikeStatus } from '../../../common/types';
-import { LikeStatusForCommentDocument } from '../../like-status-for-comment/domain/domain-like-status-for-comment';
+
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -56,7 +56,7 @@ WHERE c.id = $1
         );
 
       if (likecommentsForCorrectUser) {
-        statusCurrentUser = likecommentsForCorrectUser[0].likeStatus;
+        statusCurrentUser = likecommentsForCorrectUser.likeStatus;
       }
     }
 
@@ -69,146 +69,51 @@ WHERE c.id = $1
         commentId,
       );
 
-    if (!likecommentsForCorrectComent) {
-      return this.createAloneComment(comment, statusCurrentUser);
-    }
+    if (likecommentsForCorrectComent) {
+      /* получаю  массив документов с Like*/
 
-    return this.createCommentWithLikeInfo(
-      comment,
-      statusCurrentUser,
-      likecommentsForCorrectComent,
-    );
-  }
+      const like: LikeStatusForCommentCreateWithId[] =
+        likecommentsForCorrectComent.filter(
+          (e) => e.likeStatus === LikeStatus.LIKE,
+        );
 
-  createAloneComment(
-    comment: CreateCommentWithId,
-    statusCurrentUser: LikeStatus,
-  ) {
-    /* этот метод создаст вью модель
-     которую ожидает фронтенд
-     ОДНОГО КОМЕНТАРИЯ когда данные
-     likesCount и dislikesCount и myStatus 
-     будут по дефолту -- или их еще не создано
-     или нету userId*/
+      /* получаю  массив документов с DisLike*/
 
-    return {
-      id: comment.id,
-      content: comment.content,
-      commentatorInfo: {
-        userId: comment.userId,
-        userLogin: comment.userLogin,
-      },
-      createdAt: comment.createdAt,
-      likesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: statusCurrentUser,
-      },
-    };
-  }
+      const dislike: LikeStatusForCommentCreateWithId[] =
+        likecommentsForCorrectComent.filter(
+          (e) => e.likeStatus === LikeStatus.DISLIKE,
+        );
 
-  createCommentWithLikeInfo(
-    comment: CreateCommentWithId,
-    statusCurrentUser: LikeStatus,
-    likecommentsForCorrectComent: LikeStatusForCommentCreateWithId[],
-  ) {
-    /* получаю  массив документов с Like*/
-
-    const like: LikeStatusForCommentCreateWithId[] =
-      likecommentsForCorrectComent.filter(
-        (e) => e.likeStatus === LikeStatus.LIKE,
-      );
-
-    /* получаю  массив документов с DisLike*/
-
-    const dislike: LikeStatusForCommentCreateWithId[] =
-      likecommentsForCorrectComent.filter(
-        (e) => e.likeStatus === LikeStatus.DISLIKE,
-      );
-
-    return {
-      id: comment.id,
-      content: comment.content,
-      commentatorInfo: {
-        userId: comment.userId,
-        userLogin: comment.userLogin,
-      },
-      createdAt: comment.createdAt,
-      likesInfo: {
-        likesCount: like.length,
-        dislikesCount: dislike.length,
-        myStatus: statusCurrentUser,
-      },
-    };
-  }
-
-  createAloneCommentWithLikeInfo(
-    userId: string | null,
-    /* userId чтоб определить статус того 
-пользователя который данный запрос делает */
-
-    comment: CommentDocument,
-    /* нахожусь внутри метода map
-   и comment - это текущий документ*/
-
-    allLikeStatusDocumentsForSortComments: LikeStatusForCommentDocument[],
-    /*  ТО ВСЕ ЛАЙКИ КО ВСЕМ
-  ЭТИМ КОМЕНТАРИЯМ которые отдам на фронтенд*/
-  ) {
-    /*для текущего комента  нахожу все документы
-    из массива ЛАЙКОВ */
-
-    const allLikeStatusDocumentForAloneComment: LikeStatusForCommentDocument[] =
-      allLikeStatusDocumentsForSortComments.filter(
-        (e) => e.commentId === comment._id.toString(),
-      );
-
-    /* получаю  массив документов с Like*/
-
-    const like: LikeStatusForCommentDocument[] =
-      allLikeStatusDocumentForAloneComment.filter(
-        (e) => e.likeStatus === LikeStatus.LIKE,
-      );
-
-    /* получаю  массив документов с DisLike*/
-
-    const dislike: LikeStatusForCommentDocument[] =
-      allLikeStatusDocumentForAloneComment.filter(
-        (e) => e.likeStatus === LikeStatus.DISLIKE,
-      );
-
-    /*  надо узнать какой статус поставил пользователь данному коменту,
-    тот пользователь который данный запрос делает - его айдишка
-     имеется */
-
-    let myStatus: LikeStatus;
-
-    const result = allLikeStatusDocumentForAloneComment.find(
-      (e) => e.userId === userId,
-    );
-
-    if (result) {
-      myStatus = result.likeStatus;
+      return {
+        id: comment.id,
+        content: comment.content,
+        commentatorInfo: {
+          userId: comment.userId,
+          userLogin: comment.userLogin,
+        },
+        createdAt: comment.createdAt,
+        likesInfo: {
+          likesCount: like.length,
+          dislikesCount: dislike.length,
+          myStatus: statusCurrentUser,
+        },
+      };
     } else {
-      myStatus = LikeStatus.NONE;
+      return {
+        id: comment.id,
+        content: comment.content,
+        commentatorInfo: {
+          userId: comment.userId,
+          userLogin: comment.userLogin,
+        },
+        createdAt: comment.createdAt,
+        likesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: statusCurrentUser,
+        },
+      };
     }
-
-    const likesInfo: LikesInfo = {
-      likesCount: like.length,
-      dislikesCount: dislike.length,
-      myStatus,
-    };
-
-    return {
-      id: comment._id.toString(),
-      content: comment.content,
-      commentatorInfo: {
-        userId: comment.commentatorInfo.userId,
-        userLogin: comment.commentatorInfo.userLogin,
-      },
-      createdAt: comment.createdAt,
-      likesInfo,
-    };
   }
 
   async getComments(
