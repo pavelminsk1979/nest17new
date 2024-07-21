@@ -135,7 +135,7 @@ describe('tests for andpoint users', () => {
     idPost = res.body.id;
   });
 
-  it('create commit for correct post ', async () => {
+  it('create one commit for correct post ', async () => {
     //console.log(accessToken);
     //console.log(postId);
     const res = await request(app.getHttpServer())
@@ -148,7 +148,36 @@ describe('tests for andpoint users', () => {
 
     commentId = res.body.id;
 
+    //console.log(res.body);
+  });
+
+  it('create two commit for correct post ', async () => {
+    //console.log(accessToken);
+    //console.log(postId);
+    const res = await request(app.getHttpServer())
+      .post(`/posts/${idPost}/comments`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        content: '2content2ForPost2 content2ForPost2 contentForPost',
+      })
+      .expect(201);
+
+    commentId = res.body.id;
+
+    //console.log(res.body);
+  });
+
+  it('get all commits for correct post ', async () => {
+    //console.log(accessToken);
+    //console.log(postId);
+    const res = await request(app.getHttpServer())
+      .get(`/posts/${idPost}/comments`)
+      .set('Authorization', `Bearer ${accessToken}`)
+
+      .expect(200);
+
     console.log(res.body);
+    console.log(res.body.items[0]);
   });
 });
 

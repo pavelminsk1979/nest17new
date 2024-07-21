@@ -172,7 +172,7 @@ export class PostsController {
     //к этому коментарию
 
     const comments: ViewArrayComments | null =
-      await this.commentQueryRepository.getComments(
+      await this.commentQuerySqlRepository.getComments(
         userId,
         postId,
         queryCommentsForPost,
