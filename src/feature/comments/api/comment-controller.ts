@@ -71,7 +71,7 @@ export class CommentController {
 
     const userId = request['userId'];
 
-    const isUpdateComment = await this.commentService.updateComment(
+    const isUpdateComment: boolean = await this.commentService.updateComment(
       userId,
       commentId,
       updateCommentInputModel.content,

@@ -54,4 +54,27 @@ VALUES ( $1,$2,$3,$4,$5)
 
     return result[0];
   }
+
+  async changeComment(idComment: string, newContent: string) {
+    const result = await this.dataSource.query(
+      `
+    
+    UPDATE public.comment
+SET  content=$1
+WHERE id=$2;
+    
+    `,
+      [newContent, idComment],
+    );
+
+    /*    в result будет всегда массив и всегда первым
+элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+или НОЛЬ(если ничего не изменилось) или число-сколько
+строк изменилось(в данном случае еденица будет
+вторым элементом масива )*/
+
+    if (result[1] === 0) return false;
+
+    return true;
+  }
 }

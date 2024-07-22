@@ -31,7 +31,6 @@ export class CommentService {
   constructor(
     protected commentRepository: CommentRepository,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
-    protected likeStatusForCommentRepository: LikeStatusForCommentRepository,
     @InjectModel(LikeStatusForComment.name)
     private likeStatusModelForComment: Model<LikeStatusForCommentDocument>,
     protected postSqlRepository: PostSqlRepository,
@@ -76,9 +75,9 @@ export class CommentService {
   async updateComment(userId: string, commentId: string, content: string) {
     //нахожу коментарий в базе данных
 
-    const comment = await this.commentRepository.findCommentById(commentId);
+    const comment = await this.commentSqlRepository.findCommentById(commentId);
 
-    if (!comment) return null;
+    if (!comment) return false;
 
     /*   проверяю что этот коментарий принадлежит
    пользователю который  хочет его изменить */
@@ -91,11 +90,13 @@ export class CommentService {
 
     /*изменяю в документе comment содержимое
 поля comment*/
-    comment.content = content;
+    const newContent = content;
+
+    const idComment = comment.id;
 
     //сохраняю в базу измененный документ
 
-    return await this.commentRepository.save(comment);
+    return await this.commentSqlRepository.changeComment(idComment, newContent);
   }
 
   async deleteCommentById(userId: string, commentId: string) {
