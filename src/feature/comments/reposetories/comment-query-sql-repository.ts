@@ -251,7 +251,7 @@ pagesCount это число
 
     for (const comment of result) {
       /* найду записи с таблицы likecomment  для текущего сomment  */
-      debugger;
+
       const likecommentsForCorrectComent: LikeStatusForCommentCreateWithId[] =
         await this.likeStatusForCommentSqlRepository.findLikeCommentsForCorrectComment(
           comment.id,

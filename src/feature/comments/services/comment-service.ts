@@ -82,7 +82,7 @@ export class CommentService {
     /*   проверяю что этот коментарий принадлежит
    пользователю который  хочет его изменить */
 
-    if (comment.commentatorInfo.userId !== userId) {
+    if (comment.userId !== userId) {
       throw new ForbiddenException(
         'comment not belong current user :method put  ,url /comments/commentId',
       );

@@ -202,4 +202,14 @@ describe('tests for andpoint users', () => {
     console.log(res.body);
     console.log('+++++++++');
   });
+
+  it('update correct comment ', async () => {
+    const res = await request(app.getHttpServer())
+      .put(`/comments/${commentId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        content: 'updateContant/updateContant-updateContant ',
+      })
+      .expect(204);
+  });
 });
