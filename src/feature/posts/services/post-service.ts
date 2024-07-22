@@ -11,11 +11,13 @@ import {
   LikeStatusForPost,
   LikeStatusForPostDocument,
 } from '../../like-status-for-post/domain/domain-like-status-for-post';
-import { UsersRepository } from '../../users/repositories/user-repository';
 import { BlogSqlRepository } from '../../blogs/repositories/blog-sql-repository';
 import { CreatePost } from '../api/types/dto';
 import { PostSqlRepository } from '../repositories/post-sql-repository';
 import { UpdatePostForCorrectBlogInputModel } from '../api/pipes/update-post-for-correct-blog-input-model';
+import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
+import { LikeStatusForPostWithId } from '../../like-status-for-post/types/dto';
+import { LikeStatusForPostSqlRepository } from '../../like-status-for-post/repositories/like-status-for-post-sql-repository';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -33,8 +35,9 @@ export class PostService {
     protected likeStatusForPostRepository: LikeStatusForPostRepository,
     @InjectModel(LikeStatusForPost.name)
     protected likeStatusModelForPost: Model<LikeStatusForPostDocument>,
-    protected usersRepository: UsersRepository,
     protected blogSqlRepository: BlogSqlRepository,
+    protected usersSqlRepository: UsersSqlRepository,
+    protected likeStatusForPostSqlRepository: LikeStatusForPostSqlRepository,
   ) {}
 
   async createPost(createPostInputModel: CreatePostInputModel) {
@@ -100,52 +103,59 @@ export class PostService {
     postId: string,
     likeStatus: LikeStatus,
   ) {
-    const userDocument = await this.usersRepository.getUserById(userId);
+    const user = await this.usersSqlRepository.getUserById(userId);
     /*для создания нового документа(newLikeStatusForPost) потребуется
   login  создателя--- этот login потребуется вдальнейшем когда буду 
    формировать view для отдачи на фронт */
 
-    const login = userDocument!.login;
+    const login = user!.login;
 
     /* проверка- существует ли в базе такой пост*/
 
-    const postDocument = await this.postRepository.getPostById(postId);
+    const post = await this.postSqlRepository.getPost(postId);
 
-    if (!postDocument) return null;
+    if (!post) return false;
 
     /*    ищу в базе ЛайковДляПостов  один документ   по
              двум полям userData.userId и postId---*/
 
-    const document: LikeStatusForPostDocument | null =
-      await this.likeStatusForPostRepository.findDocumentByUserIdAndPostId(
+    const likePost: LikeStatusForPostWithId | null =
+      await this.likeStatusForPostSqlRepository.findLikePostByUserIdAndPostId(
         userId,
         postId,
       );
 
-    if (!document) {
+    if (!likePost) {
       /*Если документа  нет тогда надо cоздать
       новый документ и добавить в базу*/
 
-      const newLikeStatusForPost: LikeStatusForPostDocument =
-        new this.likeStatusModelForPost({
-          userId,
-          postId,
-          likeStatus,
-          login,
-          addedAt: new Date().toISOString(),
-        });
+      const newLikePost: LikeStatusForPost = {
+        userId,
+        postId,
+        likeStatus,
+        login,
+        addedAt: new Date().toISOString(),
+      };
 
-      return await this.likeStatusForPostRepository.save(newLikeStatusForPost);
+      return await this.likeStatusForPostSqlRepository.createLikePost(
+        newLikePost,
+      );
     }
 
     /*Если документ есть тогда надо изменить
      statusLike в нем на приходящий и установить теперещнюю дату
       установки */
 
-    document.likeStatus = likeStatus;
+    const currentlikeStatus = likeStatus;
 
-    document.addedAt = new Date().toISOString();
+    const currentAddedAt = new Date().toISOString();
 
-    return await this.likeStatusForPostRepository.save(document);
+    const idCurrentLikePost = likePost.id;
+
+    return await this.likeStatusForPostSqlRepository.changeLikePost(
+      idCurrentLikePost,
+      currentlikeStatus,
+      currentAddedAt,
+    );
   }
 }

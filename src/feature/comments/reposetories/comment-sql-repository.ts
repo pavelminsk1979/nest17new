@@ -34,4 +34,24 @@ VALUES ( $1,$2,$3,$4,$5)
     if (!result) return null;
     return result[0].id;
   }
+
+  async findCommentById(commentId: string) {
+    const result = await this.dataSource.query(
+      `
+    
+    select *
+    from public.comment com
+    where com.id=$1
+    `,
+      [commentId],
+    );
+
+    /*в result будет  массив --- если не найдет запись
+    тогда ПУСТОЙ МАССИВ,   если найдет запись
+    тогда первым элементом в массиве будет обьект */
+
+    if (result.length === 0) return null;
+
+    return result[0];
+  }
 }

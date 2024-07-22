@@ -78,6 +78,7 @@ import { SaBlogController } from './feature/blogs/api/sa-blog-controller';
 import { CommentSqlRepository } from './feature/comments/reposetories/comment-sql-repository';
 import { CommentQuerySqlRepository } from './feature/comments/reposetories/comment-query-sql-repository';
 import { LikeStatusForCommentSqlRepository } from './feature/like-status-for-comment/repositories/like-status-for-comment-sql-repository';
+import { LikeStatusForPostSqlRepository } from './feature/like-status-for-post/repositories/like-status-for-post-sql-repository';
 
 dotenv.config();
 
@@ -278,6 +279,7 @@ dotenv.config();
     CommentSqlRepository,
     CommentQuerySqlRepository,
     LikeStatusForCommentSqlRepository,
+    LikeStatusForPostSqlRepository,
   ],
 })
 /*export class AppModule {} в данном контексте

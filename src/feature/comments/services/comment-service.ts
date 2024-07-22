@@ -1,9 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PostRepository } from '../../posts/repositories/post-repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Comment, CommentDocument } from '../domaims/domain-comment';
-import { UsersRepository } from '../../users/repositories/user-repository';
 import { CommentRepository } from '../reposetories/comment-repository';
 import { LikeStatus } from '../../../common/types';
 import {
@@ -15,6 +13,11 @@ import { PostSqlRepository } from '../../posts/repositories/post-sql-repository'
 import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
 import { CreateComment } from '../api/types/dto';
 import { CommentSqlRepository } from '../reposetories/comment-sql-repository';
+import {
+  LikeStatusForCommentCreate,
+  LikeStatusForCommentCreateWithId,
+} from '../../like-status-for-comment/types/dto';
+import { LikeStatusForCommentSqlRepository } from '../../like-status-for-comment/repositories/like-status-for-comment-sql-repository';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -26,9 +29,7 @@ import { CommentSqlRepository } from '../reposetories/comment-sql-repository';
  возможно внедрить как зависимость*/
 export class CommentService {
   constructor(
-    protected postRepository: PostRepository,
     protected commentRepository: CommentRepository,
-    protected usersRepository: UsersRepository,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     protected likeStatusForCommentRepository: LikeStatusForCommentRepository,
     @InjectModel(LikeStatusForComment.name)
@@ -36,6 +37,7 @@ export class CommentService {
     protected postSqlRepository: PostSqlRepository,
     protected usersSqlRepository: UsersSqlRepository,
     protected commentSqlRepository: CommentSqlRepository,
+    protected likeStatusForCommentSqlRepository: LikeStatusForCommentSqlRepository,
   ) {}
 
   async createComment(userId: string, postId: string, content: string) {
@@ -120,34 +122,31 @@ export class CommentService {
   ) {
     /* проверка- существует ли в базе такой коментарий*/
 
-    const commentDocument =
-      await this.commentRepository.findCommentById(commentId);
+    const comment = await this.commentSqlRepository.findCommentById(commentId);
 
-    if (!commentDocument) return null;
+    if (!comment) return false;
 
-    /*    ищу в базе ЛайковДляКоментариев  один документ   по
-             двум полям userId и commentId---*/
+    /*    ищу в базе ЛайковДляКоментариев  один документ   по  двум полям userId и commentId---*/
 
-    const document: LikeStatusForCommentDocument | null =
-      await this.likeStatusForCommentRepository.findDocumentByUserIdAndCommentId(
+    const likeComment: LikeStatusForCommentCreateWithId | null =
+      await this.likeStatusForCommentSqlRepository.findLikeCommentByUserIdAndCommentId(
         userId,
         commentId,
       );
-    //console.log(commentId);
-    if (!document) {
+
+    if (!likeComment) {
       /*Если документа  нет тогда надо cоздать
       новый документ и добавить в базу*/
 
-      const newLikeStatusForComment: LikeStatusForCommentDocument =
-        new this.likeStatusModelForComment({
-          userId,
-          commentId,
-          likeStatus,
-          addedAt: new Date().toISOString(),
-        });
+      const newLikeComment: LikeStatusForCommentCreate = {
+        userId,
+        commentId,
+        likeStatus,
+        addedAt: new Date().toISOString(),
+      };
 
-      return await this.likeStatusForCommentRepository.save(
-        newLikeStatusForComment,
+      return await this.likeStatusForCommentSqlRepository.createLikeComment(
+        newLikeComment,
       );
     }
 
@@ -155,10 +154,16 @@ export class CommentService {
      statusLike в нем на приходящий и установить теперещнюю дату
       установки */
 
-    document.likeStatus = likeStatus;
+    const currentlikeStatus = likeStatus;
 
-    document.addedAt = new Date().toISOString();
+    const currentAddedAt = new Date().toISOString();
 
-    return await this.likeStatusForCommentRepository.save(document);
+    const idCurrentLikeComment = likeComment.id;
+
+    return await this.likeStatusForCommentSqlRepository.changeLikeComment(
+      idCurrentLikeComment,
+      currentlikeStatus,
+      currentAddedAt,
+    );
   }
 }

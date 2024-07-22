@@ -25,7 +25,6 @@ import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-
 import { CommentService } from '../../comments/services/comment-service';
 import { Request } from 'express';
 import { SetLikeStatusForPostInputModel } from './pipes/set-like-status-input-model';
-import { LikeStatusForPostDocument } from '../../like-status-for-post/domain/domain-like-status-for-post';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
 import { PostQuerySqlRepository } from '../repositories/post-query-sql-repository';
 import { CommentQuerySqlRepository } from '../../comments/reposetories/comment-query-sql-repository';
@@ -254,7 +253,7 @@ export class PostsController {
 
     const userId = request['userId'];
 
-    const isSetLikestatusForPost: LikeStatusForPostDocument | null =
+    const isSetLikestatusForPost: boolean =
       await this.postService.setLikestatusForPost(
         userId,
         postId,

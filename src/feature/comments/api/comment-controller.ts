@@ -17,7 +17,6 @@ import { UpdateCorrectCommentInputModel } from './pipe/update-correct-comment';
 import { CommentService } from '../services/comment-service';
 import { Request } from 'express';
 import { SetLikeStatusForCommentInputModel } from './pipe/set-like-status-for-comment-input-model';
-import { LikeStatusForCommentDocument } from '../../like-status-for-comment/domain/domain-like-status-for-comment';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
 
 @Controller('comments')
@@ -124,7 +123,7 @@ export class CommentController {
 
     const userId = request['userId'];
 
-    const isSetLikestatusForComment: LikeStatusForCommentDocument | null =
+    const isSetLikestatusForComment: boolean =
       await this.commentService.setLikestatusForComment(
         userId,
         commentId,
