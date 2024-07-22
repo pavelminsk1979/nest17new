@@ -18,12 +18,14 @@ import { CommentService } from '../services/comment-service';
 import { Request } from 'express';
 import { SetLikeStatusForCommentInputModel } from './pipe/set-like-status-for-comment-input-model';
 import { DataUserExtractorFromTokenGuard } from '../../../common/guard/data-user-extractor-from-token-guard';
+import { CommentQuerySqlRepository } from '../reposetories/comment-query-sql-repository';
 
 @Controller('comments')
 export class CommentController {
   constructor(
     protected commentQueryRepository: CommentQueryRepository,
     protected commentService: CommentService,
+    protected commentQuerySqlRepository: CommentQuerySqlRepository,
   ) {}
 
   @UseGuards(DataUserExtractorFromTokenGuard)
@@ -42,7 +44,7 @@ export class CommentController {
     //вернуть один  коментарий по айдишке
     //и у него будут данные о лайках
 
-    const comment = await this.commentQueryRepository.getCommentById(
+    const comment = await this.commentQuerySqlRepository.getCommentById(
       userId,
       commentId,
     );

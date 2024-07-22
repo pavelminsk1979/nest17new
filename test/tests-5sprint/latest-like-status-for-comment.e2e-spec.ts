@@ -189,4 +189,17 @@ describe('tests for andpoint users', () => {
     console.log(res.body);
     console.log(res.body.items[0]);
   });
+
+  it('get correct comment  ', async () => {
+    //console.log(accessToken);
+    //console.log(postId);
+    const res = await request(app.getHttpServer())
+      .get(`/comments/${commentId}`)
+
+      .expect(200);
+
+    console.log('++++++++++');
+    console.log(res.body);
+    console.log('+++++++++');
+  });
 });
