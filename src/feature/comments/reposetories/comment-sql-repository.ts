@@ -77,4 +77,38 @@ WHERE id=$2;
 
     return true;
   }
+
+  async deleteCommentById(commentId: string) {
+    /*  СПЕРВА НАДО УДАЛИТЬ
+      ЗАПИСИ В ТАБЛИЦЕ likecomment  КОТОРЫЕ 
+      КАСАЮТСЯ ЭТОГО КОМЕНТАРИЯ 
+     !!! ИНАЧЕ ОШИБКА БУДЕТ */
+    await this.dataSource.query(
+      `
+    DELETE FROM public.likecomment
+    WHERE "commentId" = $1;
+    `,
+      [commentId],
+    );
+
+    // Удаление комментария
+    const result = await this.dataSource.query(
+      `
+    DELETE FROM public.comment
+     WHERE id=$1;
+    
+    `,
+      [commentId],
+    );
+
+    /*    в result будет всегда массив с двумя элементами
+ и всегда первым
+     элементом будет ПУСТОЙ МАССИВ, а вторым элементом
+     или НОЛЬ(если ничего не изменилось) или число-сколько
+     строк изменилось(в данном случае еденица будет
+вторым элементом масива )*/
+
+    if (result[1] === 0) return false;
+    return true;
+  }
 }

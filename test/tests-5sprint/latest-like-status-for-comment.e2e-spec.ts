@@ -212,4 +212,12 @@ describe('tests for andpoint users', () => {
       })
       .expect(204);
   });
+
+  it('delete  correct comment ', async () => {
+    const res = await request(app.getHttpServer())
+      .delete(`/comments/${commentId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+
+      .expect(204);
+  });
 });

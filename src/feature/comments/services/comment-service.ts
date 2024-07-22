@@ -8,7 +8,6 @@ import {
   LikeStatusForComment,
   LikeStatusForCommentDocument,
 } from '../../like-status-for-comment/domain/domain-like-status-for-comment';
-import { LikeStatusForCommentRepository } from '../../like-status-for-comment/repositories/like-status-for-comment-repository';
 import { PostSqlRepository } from '../../posts/repositories/post-sql-repository';
 import { UsersSqlRepository } from '../../users/repositories/user-sql-repository';
 import { CreateComment } from '../api/types/dto';
@@ -100,20 +99,20 @@ export class CommentService {
   }
 
   async deleteCommentById(userId: string, commentId: string) {
-    const comment = await this.commentRepository.findCommentById(commentId);
+    const comment = await this.commentSqlRepository.findCommentById(commentId);
 
     if (!comment) return null;
 
     /*   проверяю что этот коментарий принадлежит
    пользователю который  хочет его изменить */
 
-    if (comment.commentatorInfo.userId !== userId) {
+    if (comment.userId !== userId) {
       throw new ForbiddenException(
         'comment not belong current user :method delete   ,url /comments/commentId',
       );
     }
 
-    return this.commentRepository.deleteCommentById(commentId);
+    return this.commentSqlRepository.deleteCommentById(commentId);
   }
 
   async setLikestatusForComment(
