@@ -73,23 +73,21 @@ export class PostsController {
   @Get()
   async getPosts(
     @Query() queryParamsPostInputModel: QueryParamsInputModel,
-    //@Req() request: Request,
+    @Req() request: Request,
   ): Promise<ViewModelWithArrayPosts> {
-    /*  console.log('----------');
-      console.log('getPosts');
-      console.log('----------');*/
     /*Айдишка пользователя нужна для-- когда
  отдадим ответ в нем будет информация
  о том какой статус учтановил данный пользователь
  который этот запрос делает */
 
-    //const userId: string | null = request['userId'];
+    const userId: string | null = request['userId'];
 
     const posts: ViewModelWithArrayPosts =
-      await this.postQuerySqlRepository.getPosts(queryParamsPostInputModel);
-    /*  console.log('+++++++++');
-      console.log(posts);
-      console.log('++++++++++++');*/
+      await this.postQuerySqlRepository.getPosts(
+        queryParamsPostInputModel,
+        userId,
+      );
+
     return posts;
   }
 

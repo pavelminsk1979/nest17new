@@ -4,6 +4,7 @@ import {
   NotFoundException,
   Param,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PostQueryRepository } from '../../posts/repositories/post-query-repository';
@@ -159,19 +160,20 @@ export class BlogController {
   async getPostsForBlog(
     @Param('blogId') blogId: string,
     @Query() queryParamsPostForBlogInputModel: QueryParamsInputModel,
-    //@Req() request: Request,
+    @Req() request: Request,
   ): Promise<ViewModelWithArrayPosts> {
     /*Айдишка пользователя нужна для-- когда
     отдадим ответ в нем дудет информация 
     о том какой статус учтановил данный пользователь
     который этот запрос делает */
 
-    // const userId: string | null = request['userId'];
+    const userId: string | null = request['userId'];
 
     //вернуть все posts(массив) для корректного блога
     //и у каждого поста  будут данные о лайках
 
     const posts = await this.postQuerySqlRepository.getPostsByCorrectBlogId(
+      userId,
       blogId,
       queryParamsPostForBlogInputModel,
     );

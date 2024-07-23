@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ViewBlog } from './types/views';
@@ -138,14 +139,14 @@ export class SaBlogController {
   async createPostFortBlog(
     @Param('blogId') blogId: string,
     @Body() createPostForBlogInputModel: CreatePostForBlogInputModel,
-    // @Req() request: Request,
+    @Req() request: Request,
   ): Promise<PostWithLikesInfo | null> {
     /* чтобы переиспользовать в этом обработчике метод
  getPostById  ему нужна (userId)- она будет 
  в данном случае null но главное что удовлетворяю
  метод значением-userId*/
 
-    // const userId: string | null = request['userId'];
+    const userId: string | null = request['userId'];
 
     /* создать новый пост ДЛЯ КОНКРЕТНОГО БЛОГА и вернут
      данные этого поста и также структуру 
@@ -162,7 +163,7 @@ export class SaBlogController {
     }
 
     const post: PostWithLikesInfo | null =
-      await this.postQuerySqlRepository.getPostById(postId);
+      await this.postQuerySqlRepository.getPostById(postId, userId);
 
     if (post) {
       return post;
@@ -178,19 +179,20 @@ export class SaBlogController {
   async getPostsForBlog(
     @Param('blogId') blogId: string,
     @Query() queryParamsPostForBlogInputModel: QueryParamsInputModel,
-    //@Req() request: Request,
+    @Req() request: Request,
   ): Promise<ViewModelWithArrayPosts> {
     /*Айдишка пользователя нужна для-- когда
     отдадим ответ в нем дудет информация 
     о том какой статус учтановил данный пользователь
     который этот запрос делает */
 
-    // const userId: string | null = request['userId'];
+    const userId: string | null = request['userId'];
 
     //вернуть все posts(массив) для корректного блога
     //и у каждого поста  будут данные о лайках
 
     const posts = await this.postQuerySqlRepository.getPostsByCorrectBlogId(
+      userId,
       blogId,
       queryParamsPostForBlogInputModel,
     );

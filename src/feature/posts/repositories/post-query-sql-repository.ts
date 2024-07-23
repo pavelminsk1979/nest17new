@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostDocument } from '../domains/domain-post';
-
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
-import { LikeStatusForPostRepository } from '../../like-status-for-post/repositories/like-status-for-post-repository';
-
 import { LikeStatus } from '../../../common/types';
 import { BlogRepository } from '../../blogs/repositories/blog-repository';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -26,13 +23,15 @@ import { LikeStatusForPostWithId } from '../../like-status-for-post/types/dto';
 export class PostQuerySqlRepository {
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
-    protected likeStatusForPostRepository: LikeStatusForPostRepository,
     protected blogRepository: BlogRepository,
     @InjectDataSource() protected dataSource: DataSource,
     protected blogSqlRepository: BlogSqlRepository,
   ) {}
 
-  async getPosts(queryParamsPostForBlog: QueryParamsInputModel) {
+  async getPosts(
+    queryParamsPostForBlog: QueryParamsInputModel,
+    userId: string | null,
+  ) {
     const { sortBy, sortDirection, pageNumber, pageSize } =
       queryParamsPostForBlog;
 
@@ -133,33 +132,22 @@ pageSize - размер  одной страницы, ПО УМОЛЧАНИЮ 10
         объединения таблиц post и blog, а не к отдельной
         таблице blog.*/
 
-    const result = await this.dataSource.query(
-      `
+    const arrayPosts: CreatePostWithIdAndWithNameBlog[] =
+      await this.dataSource.query(
+        `
   SELECT p.*, b.name
   FROM public.post p
   LEFT JOIN public.blog b ON p."blogId" = b.id
   ORDER BY ${sortColumn}
   LIMIT $1 OFFSET $2
   `,
-      [pageSize, amountSkip],
-    );
-
-    /*
-далее перед отправкой на фронтенд отмамплю записи из
-базы данных и добавлю поля - приведу к тому виду
-который ожидает  фронтенд
-*/
-
-    const arrayPosts: PostWithLikesInfo[] = result.map(
-      (post: CreatePostWithIdAndWithNameBlog) => {
-        return this.createViewModelPost(post);
-      },
-    );
+        [pageSize, amountSkip],
+      );
 
     /* totalCountQuery - это запрос для получения общего
-     количества записей. Здесь используется функция
-      COUNT(*), которая подсчитывает все строки из
-       таблицы "post" с учетом объединения с таблицей "blog".*/
+   количества записей. Здесь используется функция
+    COUNT(*), которая подсчитывает все строки из
+     таблицы "post" с учетом объединения с таблицей "blog".*/
 
     const totalCountQuery = await this.dataSource.query(
       `
@@ -179,13 +167,100 @@ pagesCount это число
 
     const pagesCount: number = Math.ceil(totalCount / pageSize);
 
+    if (arrayPosts.length === 0) {
+      return {
+        pagesCount,
+        page: pageNumber,
+        pageSize: pageSize,
+        totalCount,
+        items: [],
+      };
+    }
+
+    /*
+далее перед отправкой на фронтенд 
+приведу массив arrayPosts к тому виду
+который ожидает  фронтенд
+ и добавлю информацию из 
+таблицы ЛАЙКИ к ПОСТАМ 
+
+*/
+
+    const viewArrayPosts: PostWithLikesInfo[] = await this.createViewArrayPosts(
+      userId,
+      arrayPosts,
+    );
+
     return {
       pagesCount,
       page: pageNumber,
       pageSize: pageSize,
       totalCount,
-      items: arrayPosts,
+      items: viewArrayPosts,
     };
+  }
+
+  async createViewArrayPosts(
+    userId: string | null,
+    arrayPosts: CreatePostWithIdAndWithNameBlog[],
+  ) {
+    /* из arrayPosts( массив постов)
+    - достану из каждого поста  id(aйдишку поста)
+    буду иметь массив айдишек */
+
+    const arrayPostId: string[] = arrayPosts.map(
+      (e: CreatePostWithIdAndWithNameBlog) => e.id,
+    );
+
+    /*из таблицы postlike
+  достану все записи которые имеют id из 
+   массива  arrayPostId .... плюс записи будут отсортированы
+  (первая самая новая)*/
+
+    const arrayPostLikeManyPostId: LikeStatusForPostWithId[] =
+      await this.dataSource.query(
+        `
+      
+          SELECT *
+FROM public.postlike plike
+WHERE plike."postId" IN (${arrayPostId.map((id, idx) => `$${idx + 1}`).join(', ')})
+ ORDER BY plike."addedAt" DESC   
+    
+      
+      `,
+        arrayPostId,
+      );
+
+    /*в arrayPostLikeManyPostId будет  массив --- если не найдет запись ,  
+   тогда ПУСТОЙ МАССИВ,   если найдет запись
+   тогда  в массиве будетут обьекты */
+
+    return arrayPosts.map((el: CreatePostWithIdAndWithNameBlog) => {
+      /*    тут для каждого элемента из массива постов
+          будет делатся ВЬЮМОДЕЛЬ которую ожидает 
+          фронтенд, внутри будет информация об 
+          посте и об лайках к этому посту*/
+      if (arrayPostLikeManyPostId.length === 0) {
+        const viewPostWithInfoLike = this.createViewModelOnePostWithLikeInfo(
+          userId,
+          el,
+          arrayPostLikeManyPostId,
+        );
+        return viewPostWithInfoLike;
+      } else {
+        const currentPostId = el.id;
+        const arrayPostLikeForCorrectPost = arrayPostLikeManyPostId.filter(
+          (el: LikeStatusForPostWithId) => el.postId === currentPostId,
+        );
+
+        const viewPostWithInfoLike = this.createViewModelOnePostWithLikeInfo(
+          userId,
+          el,
+          arrayPostLikeForCorrectPost,
+        );
+        return viewPostWithInfoLike;
+      }
+    });
   }
 
   createViewModelPost(
@@ -209,6 +284,7 @@ pagesCount это число
   }
 
   async getPostsByCorrectBlogId(
+    userId: string | null,
     blogId: string,
     queryParams: QueryParamsInputModel,
   ) {
@@ -264,18 +340,6 @@ pagesCount это число
       [blogId, pageSize, amountSkip],
     );
 
-    /*
-далее перед отправкой на фронтенд отмамплю записи из
-базы данных и добавлю поля - приведу к тому виду
-который ожидает  фронтенд
-*/
-
-    const arrayPosts: PostWithLikesInfo[] = result.map(
-      (post: CreatePostWithIdAndWithNameBlog) => {
-        return this.createViewModelPost(post);
-      },
-    );
-
     /* totalCountQuery - это запрос для получения общего
  количества записей. Здесь используется функция
   COUNT(*), которая подсчитывает все строки из
@@ -301,12 +365,36 @@ pagesCount это число
 
     const pagesCount: number = Math.ceil(totalCount / pageSize);
 
+    if (result.length === 0) {
+      return {
+        pagesCount,
+        page: pageNumber,
+        pageSize: pageSize,
+        totalCount,
+        items: [],
+      };
+    }
+
+    /*
+ далее перед отправкой на фронтенд 
+ приведу массив result к тому виду
+ который ожидает  фронтенд
+  и добавлю информацию из 
+ таблицы ЛАЙКИ к ПОСТАМ 
+ 
+ */
+
+    const viewArrayPosts: PostWithLikesInfo[] = await this.createViewArrayPosts(
+      userId,
+      result,
+    );
+
     return {
       pagesCount,
       page: pageNumber,
       pageSize: pageSize,
       totalCount,
-      items: arrayPosts,
+      items: viewArrayPosts,
     };
   }
 
