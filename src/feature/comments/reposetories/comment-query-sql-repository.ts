@@ -195,12 +195,13 @@ ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}
     const result = await this.dataSource.query(
       `
    SELECT *
-  FROM public.comment 
+  FROM public.comment com
+  WHERE com."postId" = $3
   ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}  
     LIMIT $1 OFFSET $2
  
   `,
-      [pageSize, amountSkip],
+      [pageSize, amountSkip, postId],
     );
 
     /*в result будет  массив --- если не найдет запись ,
@@ -219,9 +220,11 @@ ORDER BY "${sortBy}" COLLATE "C" ${sortDirection}
     const totalCountQuery = await this.dataSource.query(
       `
   SELECT COUNT(*) AS value
-  FROM public.comment
+  FROM public.comment com
+  WHERE com."postId" = $1
   
  `,
+      [postId],
     );
 
     const totalCount = Number(totalCountQuery[0].value);

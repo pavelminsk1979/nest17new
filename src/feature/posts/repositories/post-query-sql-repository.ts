@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostDocument } from '../domains/domain-post';
 import { QueryParamsInputModel } from '../../../common/pipes/query-params-input-model';
 import { LikeStatus } from '../../../common/types';
-import { BlogRepository } from '../../blogs/repositories/blog-repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { NewestLikes, PostWithLikesInfo } from '../api/types/views';
@@ -23,7 +22,6 @@ import { LikeStatusForPostWithId } from '../../like-status-for-post/types/dto';
 export class PostQuerySqlRepository {
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
-    protected blogRepository: BlogRepository,
     @InjectDataSource() protected dataSource: DataSource,
     protected blogSqlRepository: BlogSqlRepository,
   ) {}
@@ -261,26 +259,6 @@ WHERE plike."postId" IN (${arrayPostId.map((id, idx) => `$${idx + 1}`).join(', '
         return viewPostWithInfoLike;
       }
     });
-  }
-
-  createViewModelPost(
-    post: CreatePostWithIdAndWithNameBlog,
-  ): PostWithLikesInfo {
-    return {
-      id: post.id,
-      title: post.title,
-      shortDescription: post.shortDescription,
-      content: post.content,
-      blogId: post.blogId,
-      blogName: post.name,
-      createdAt: post.createdAt,
-      extendedLikesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: LikeStatus.NONE,
-        newestLikes: [],
-      },
-    };
   }
 
   async getPostsByCorrectBlogId(

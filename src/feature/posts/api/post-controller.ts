@@ -14,9 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PostService } from '../services/post-service';
-import { PostQueryRepository } from '../repositories/post-query-repository';
 import { PostWithLikesInfo, ViewModelWithArrayPosts } from './types/views';
-import { CommentQueryRepository } from '../../comments/reposetories/comment-query-repository';
 import { ViewArrayComments } from '../../comments/types/views';
 import { AuthGuard } from '../../../common/guard/auth-guard';
 import { CreateCommentForPostInputModel } from './pipes/create-coment-for-post-input-model';
@@ -33,8 +31,6 @@ import { CommentQuerySqlRepository } from '../../comments/reposetories/comment-q
 export class PostsController {
   constructor(
     protected postService: PostService,
-    protected postQueryRepository: PostQueryRepository,
-    protected commentQueryRepository: CommentQueryRepository,
     protected commentService: CommentService,
     protected postQuerySqlRepository: PostQuerySqlRepository,
     protected commentQuerySqlRepository: CommentQuerySqlRepository,
