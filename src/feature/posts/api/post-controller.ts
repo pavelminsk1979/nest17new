@@ -97,17 +97,17 @@ export class PostsController {
   @Get(':id')
   async getPostById(
     @Param('id') postId: string,
-    //@Req() request: Request,
+    @Req() request: Request,
   ): Promise<PostWithLikesInfo | null> {
     /*Айдишка пользователя нужна для-- когда
 отдадим ответ в нем дудет информация
 о том какой статус учтановил данный пользователь
 который этот запрос делает */
 
-    //const userId: string | null = request['userId'];
+    const userId: string | null = request['userId'];
 
     const post: PostWithLikesInfo | null =
-      await this.postQuerySqlRepository.getPostById(postId);
+      await this.postQuerySqlRepository.getPostById(postId, userId);
 
     if (post) {
       return post;

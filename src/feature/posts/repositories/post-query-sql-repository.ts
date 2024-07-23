@@ -10,9 +10,10 @@ import { LikeStatus } from '../../../common/types';
 import { BlogRepository } from '../../blogs/repositories/blog-repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { PostWithLikesInfo } from '../api/types/views';
+import { NewestLikes, PostWithLikesInfo } from '../api/types/views';
 import { CreatePostWithIdAndWithNameBlog } from '../api/types/dto';
 import { BlogSqlRepository } from '../../blogs/repositories/blog-sql-repository';
+import { LikeStatusForPostWithId } from '../../like-status-for-post/types/dto';
 
 @Injectable()
 /*@Injectable()-декоратор что данный клас
@@ -309,9 +310,11 @@ pagesCount это число
     };
   }
 
-  async getPostById(postId: string) {
-    /* нужны данные ПО ЗАПРОСУ ФРОНТАА
-     ИЗ таблицы post и ИЗ таблицы blog */
+  async getPostById(postId: string, userId: string | null) {
+    /* найду одну запись post по айдишке, плюс значение
+     * name из таблицы blog  И ДЛЯ ДАННОГО ПОСТА БУДЕТ
+     * СУЩЕСТВОВАТЬ ОДИН БЛОГ И У НЕГО ВОЗМУ ЕГО name ,
+     * это фронту надо инфу отдать  */
 
     const result = await this.dataSource.query(
       `
@@ -326,20 +329,127 @@ pagesCount это число
 
     if (result.length === 0) return null;
 
-    return {
-      id: result[0].id,
-      title: result[0].title,
-      shortDescription: result[0].shortDescription,
-      content: result[0].content,
-      blogId: result[0].blogId,
-      blogName: result[0].name,
-      createdAt: result[0].createdAt,
-      extendedLikesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: LikeStatus.NONE,
-        newestLikes: [],
-      },
-    };
+    const post: CreatePostWithIdAndWithNameBlog = result[0];
+
+    /* найду все записи из таблицы postlike
+     для текущего поста
+     ------сортировку по полю addedAt
+     -------- сортировка в убывающем порядке , это означает, что самая первая запись будет самой новой записью*/
+
+    const arrayPostLikeForOnePost: LikeStatusForPostWithId[] =
+      await this.dataSource.query(
+        `
+    SELECT *
+FROM public.postlike plike
+WHERE plike."postId"=$1
+ ORDER BY plike."addedAt" DESC   
+    `,
+        [postId],
+      );
+
+    /*в arrayPostLike будет  массив --- если не найдет запись ,
+   тогда ПУСТОЙ МАССИВ,   если найдет запись
+   тогда в массиве будетут  обьекты */
+
+    const viewModelOnePostWithLikeInfo: PostWithLikesInfo =
+      this.createViewModelOnePostWithLikeInfo(
+        userId,
+        post,
+        arrayPostLikeForOnePost,
+      );
+
+    return viewModelOnePostWithLikeInfo;
+  }
+
+  createViewModelOnePostWithLikeInfo(
+    userId: string | null,
+    /* userId чтоб определить статус того 
+  пользователя который данный запрос делает */
+
+    post: CreatePostWithIdAndWithNameBlog,
+    arrayPostLikeForOnePost: LikeStatusForPostWithId[],
+  ) {
+    /* из массива arrayPostLikeForOnePost  найду все
+    со статусом Like   and    Dislike*/
+
+    if (arrayPostLikeForOnePost.length === 0) {
+      return {
+        id: post.id,
+        title: post.title,
+        shortDescription: post.shortDescription,
+        content: post.content,
+        blogId: post.blogId,
+        blogName: post.name,
+        createdAt: post.createdAt,
+        extendedLikesInfo: {
+          likesCount: 0,
+          dislikesCount: 0,
+          myStatus: LikeStatus.NONE,
+          newestLikes: [],
+        },
+      };
+    } else {
+      const arrayStatusLike: LikeStatusForPostWithId[] =
+        arrayPostLikeForOnePost.filter((e) => e.likeStatus === LikeStatus.LIKE);
+
+      const arrayStatusDislike: LikeStatusForPostWithId[] =
+        arrayPostLikeForOnePost.filter(
+          (e) => e.likeStatus === LikeStatus.DISLIKE,
+        );
+
+      /* получаю из массива со статусом Like
+ три документа  новейших по дате
+ --сортировку я произвел когда все документы
+  ЛАЙКСТАТУСДЛЯПОСТОВ из   базыданных доставал */
+
+      const threeDocumentWithLike: LikeStatusForPostWithId[] =
+        arrayStatusLike.slice(0, 3);
+
+      /*  надо узнать какой статус поставил пользователь данному посту, 
+  тот пользователь который данный запрос делает - его айдишка
+   имеется */
+
+      let likeStatusCurrenttUser: LikeStatus;
+
+      const result = arrayPostLikeForOnePost.find((e) => e.userId === userId);
+
+      if (!result) {
+        likeStatusCurrenttUser = LikeStatus.NONE;
+      } else {
+        likeStatusCurrenttUser = result.likeStatus;
+      }
+
+      /*  на фронтенд надо отдать масив с тремя обьектами
+      И ТУТ ОПРЕДЕЛЕННУЮ СТРУКТУРУ СОЗДАЮ
+        и в каждом обьекте информация об юзере 
+        котрый ПОСТАВИЛ ПОЛОЖИТЕЛЬНЫЙ ЛАЙК СТАТУС и они 
+        были установлены самыми крайними*/
+
+      const threeLatestLike: NewestLikes[] = threeDocumentWithLike.map(
+        (el: LikeStatusForPostWithId) => {
+          return {
+            userId: el.userId,
+            addedAt: el.addedAt,
+            login: el.login,
+          };
+        },
+      );
+
+      return {
+        id: post.id,
+        title: post.title,
+        shortDescription: post.shortDescription,
+        content: post.content,
+        blogId: post.blogId,
+        blogName: post.name,
+        createdAt: post.createdAt,
+        extendedLikesInfo: {
+          likesCount: arrayStatusLike.length,
+          dislikesCount: arrayStatusDislike.length,
+          myStatus: likeStatusCurrenttUser,
+          newestLikes: threeLatestLike,
+        },
+      };
+    }
   }
 }
